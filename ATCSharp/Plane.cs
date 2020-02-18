@@ -1,8 +1,6 @@
 ﻿using NSimulate;
 using NSimulate.Instruction;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ATCSharp
 {
@@ -46,13 +44,15 @@ namespace ATCSharp
             TaxiActivity taxi = new TaxiActivity();
             yield return new ScheduleActivityInstruction(taxi, 0);
 
+
             Statistics.GateClearance = Context.TimePeriod;
 
             yield return new WaitInstruction((long)Characteristics.GateDuration);
 
             Statistics.GateDischarge = Context.TimePeriod;
 
-            ReleaseInstruction<Gates> releaseGate = new ReleaseInstruction<Runway>(allocateGate);
+            ReleaseInstruction<Gates> releaseGate = new ReleaseInstruction<Gates>(allocateGate);
+            yield return releaseGate;
 
 
         }

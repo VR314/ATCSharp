@@ -15,6 +15,7 @@ namespace ATCSharp
 
                 context.Register<Runway>(new Runway() { Capacity = 1 });
                 context.Register<Gates>(new Gates() { Capacity = 6 });
+                context.Register<Taxiway>(new Taxiway() { Capacity = 2 });
 
                 IEnumerable<Plane> planes = GeneratePlanes(context);
 
@@ -47,7 +48,7 @@ namespace ATCSharp
         }
     }
 
-    public class Taxiway
+    public class Taxiway : Resource
     {
         public bool Full { get; set; }
     }
