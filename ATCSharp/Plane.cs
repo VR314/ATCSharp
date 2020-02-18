@@ -6,32 +6,55 @@ using System.Text;
 
 namespace ATCSharp
 {
-    class Plane : Process
+    public class Plane : Process
     {
+        public PlaneCharacteristics Characteristics { get; set; }
+        public PlaneStatistics Statistics { get; set; }
+
+        public Plane(PlaneCharacteristics c)
+        {
+            Characteristics = c;
+            Statistics = new PlaneStatistics();
+
+        }
+
         public override IEnumerator<InstructionBase> Simulate()
         {
-            //
-            // this method is implemented as an iterator that uses _yield return_ statements to return instructions to the simulator
-            // instructions may:
-            //   - cause the process to wait for a period of time, until a condition is met, or until a notification is recieved
-            //   - cause the process to wait until resource can be allocated
-            //   - schedule activity
-            //   - activate or inactivate another process
-            //   - a number of other possibilities (see documentation for Instructions)
+            if(Characteristics.Spawn <= Context.TimePeriod)
+            {
+                //wait for spawn time
+                yield return new WaitInstruction((long)Context.TimePeriod - (long)Characteristics.Spawn);
+            }
 
-            // e.g. wait until a notification is raised... in this case a notification that an alarm is ringing
-        //yield return new WaitNotificationInstruction<AlarmRingingNotification>(); - create NOTIFICATION
+            Statistics.Spawn = Context.TimePeriod;
+            AllocateInstruction<Runway> allocateRunway = new AllocateInstruction<Runway>(10); //time to take over runway while landing
+            yield return allocateRunway;
 
-            // request a resource (if resources are not available, the process will be blocked here until they become available
-        //var allocateResourceXInstruction = new AllocateInstruction<ResourceX>(1); -request runway, gate, etc.
-        //yield return allocateResourceXInstruction;
+            Statistics.LandClearance = Context.TimePeriod;
 
-            // wait for a period of time
-            yield return new WaitInstruction(10);
+            yield return new WaitInstruction((long)Characteristics.RunwayDuration);
 
-            // release a previously allocated resource
-        //yield return new ReleaseInstruction<ResourceX>(allocateResourceXInstruction); - remove from runway, gate, etc. after some time
+            Statistics.DoneRunway = Context.TimePeriod;
+
+            ReleaseInstruction<Runway> releaseRunway = new ReleaseInstruction<Runway>(allocateRunway);
+
+            //------------------------------------------------------------------------------------------------------------
+            //                          GATE
+            AllocateInstruction<Gates> allocateGate = new AllocateInstruction<Gates>(10); //time to take over runway while landing
+            yield return allocateGate;
+
+            TaxiActivity taxi = new TaxiActivity();
+            yield return new ScheduleActivityInstruction(taxi, 0);
+
+            Statistics.GateClearance = Context.TimePeriod;
+
+            yield return new WaitInstruction((long)Characteristics.GateDuration);
+
+            Statistics.GateDischarge = Context.TimePeriod;
+
+            ReleaseInstruction<Gates> releaseGate = new ReleaseInstruction<Runway>(allocateGate);
+
+
         }
     }
-}
 }
