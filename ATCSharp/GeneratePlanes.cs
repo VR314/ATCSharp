@@ -10,6 +10,7 @@ namespace ATCSharp
     {
         public override IEnumerator<InstructionBase> Simulate()
         {
+            
             //
             // this method is implemented as an iterator that uses _yield return_ statements to return instructions to the simulator
             // instructions may:
@@ -29,5 +30,4 @@ namespace ATCSharp
         //yield return new ReleaseInstruction<ResourceX>(allocateResourceXInstruction); - remove from runway, gate, etc. after some time
         }
     }
-}
 }

@@ -38,12 +38,11 @@ namespace ATCSharp
 
             //------------------------------------------------------------------------------------------------------------
             //                          GATE
-            AllocateInstruction<Gates> allocateGate = new AllocateInstruction<Gates>(10); //time to take over runway while landing
+            AllocateInstruction<TaxiSection> allocateGate = new AllocateInstruction<TaxiSection>(10); //time to take over runway while landing
             yield return allocateGate;
 
-            TaxiActivity taxi = new TaxiActivity();
-            yield return new ScheduleActivityInstruction(taxi, 0);
-
+            TaxiActivity taxi = new TaxiActivity(true);
+            yield return new ScheduleActivityInstruction(taxi, Context.TimePeriod);
 
             Statistics.GateClearance = Context.TimePeriod;
 
@@ -51,10 +50,11 @@ namespace ATCSharp
 
             Statistics.GateDischarge = Context.TimePeriod;
 
-            ReleaseInstruction<Gates> releaseGate = new ReleaseInstruction<Gates>(allocateGate);
+            ReleaseInstruction<TaxiSection> releaseGate = new ReleaseInstruction<TaxiSection>(allocateGate);
             yield return releaseGate;
 
-
+            taxi = new TaxiActivity(false);
+            yield return new ScheduleActivityInstruction(taxi, Context.TimePeriod);
         }
     }
 }

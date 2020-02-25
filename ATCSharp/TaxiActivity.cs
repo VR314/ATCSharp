@@ -8,10 +8,16 @@ namespace ATCSharp
 {
     public class TaxiActivity : Activity
     {
-        public override IEnumerator<InstructionBase> Simulate()
+        public override IEnumerator<InstructionBase> Simulate(bool leave)
         {
-            AllocateInstruction<Taxiway> allocateTW = new AllocateInstruction<Taxiway>(10); //time to take over taxiway while landing
-            yield return allocateTW;
+            
+            if(leave)
+            {
+
+            } else
+            {
+
+            }
         }
     }
 }
