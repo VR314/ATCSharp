@@ -25,7 +25,7 @@ namespace ATCSharp
             }
 
             Statistics.Spawn = Context.TimePeriod;
-            AllocateInstruction<Runway> allocateRunway = new AllocateInstruction<Runway>(10); //time to take over runway while landing
+            AllocateInstruction<Runway> allocateRunway = new AllocateInstruction<Runway>(1);
             yield return allocateRunway;
 
             Statistics.LandClearance = Context.TimePeriod;
@@ -38,10 +38,8 @@ namespace ATCSharp
 
             //------------------------------------------------------------------------------------------------------------
             //                          GATE
-            AllocateInstruction<TaxiSection> allocateGate = new AllocateInstruction<TaxiSection>(10); //time to take over runway while landing
-            yield return allocateGate;
 
-            TaxiActivity taxi = new TaxiActivity(true);
+            TaxiActivity taxi = new TaxiActivity(true, this);
             yield return new ScheduleActivityInstruction(taxi, Context.TimePeriod);
 
             Statistics.GateClearance = Context.TimePeriod;
@@ -53,7 +51,7 @@ namespace ATCSharp
             ReleaseInstruction<TaxiSection> releaseGate = new ReleaseInstruction<TaxiSection>(allocateGate);
             yield return releaseGate;
 
-            taxi = new TaxiActivity(false);
+            taxi = new TaxiActivity(false, this);
             yield return new ScheduleActivityInstruction(taxi, Context.TimePeriod);
         }
     }

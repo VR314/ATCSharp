@@ -9,8 +9,4 @@
     <PackageReference Include="NSimulate" Version="0.92.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ATCFSharp\ATCFSharp.fsproj" />
-  </ItemGroup>
-
 </Project>

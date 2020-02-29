@@ -6,32 +6,29 @@ namespace ATCSharp
 {
     class Program
     {
-        public const int NUM_GATES = 5;
         static void Main(string[] args)
         {
             using (var context = new SimulationContext(isDefaultContextForProcess: true))
             {
-                // instantate a new simulator
+                // instantiate a new simulator
                 var simulator = new Simulator();
 
-                context.Register<Runway>(new Runway() { Capacity = 1 });
+                context.Register<Runway>(Globals.runway);
+                context.Register<Offramp>(Globals.north);
+                context.Register<Offramp>(Globals.south);
 
-                Offramp north = new Offramp(0) { Capacity = 1 };
-                context.Register<Offramp>(north);
-                Offramp south = new Offramp(1) { Capacity = 1 };
-                context.Register<Offramp>(south);
-                Offramp[] offramps = new Offramp[] { north, south };
-
-                List<TaxiSection> taxiways = new List<TaxiSection>();
-                for(int i = 0; i < NUM_GATES; i++) //north to south
+                for(int i = 0; i < Globals.NUM_GATES; i++) //north to south
                 {
-                    TaxiSection temp = new TaxiSection(index: i) { Capacity = 1 };
-                    context.Register<TaxiSection>(temp);
-                    taxiways.Add(temp);
+                    Globals.taxiway.sections.Add(new TaxiSection(index: i) { Capacity = 1 });
                 }
+                context.Register<Taxiway>(Globals.taxiway);
 
-                IEnumerable<Plane> planes = new List<Plane>();
-                
+
+                IEnumerable<Plane> planes = GeneratePlanes();
+                foreach(Plane p in planes)
+                {
+                    context.Register<Plane>(p);
+                }
 
                 // the simulation will run until:
                 //     -there are no processes with work remaining
@@ -42,10 +39,31 @@ namespace ATCSharp
             }
         }
 
+        static IEnumerable<Plane> GeneratePlanes()
+        {
+            return new List<Plane>();
+        }
+
 
         static void OutputResults(IEnumerable<Plane> planes)
         {
 
+        }
+    }
+
+    public static class Globals
+    {
+        public const int NUM_GATES = 5;
+        public static Runway runway = new Runway() { Capacity = 1 };
+        public static Taxiway taxiway = new Taxiway(null);
+        public static Offramp north = new Offramp(0) { Capacity = 1 };
+        public static Offramp south = new Offramp(1) { Capacity = 1 };
+        public static Offramp[] offramps = new Offramp[] { north, south };
+
+        public enum Direction
+        {
+            NORTH,
+            SOUTH
         }
     }
 }
