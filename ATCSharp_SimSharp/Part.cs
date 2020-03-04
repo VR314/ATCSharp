@@ -12,7 +12,7 @@ namespace ATCSharp_SimSharp {
         public string name { get; set; }
         public bool Occupied { get; set; }
 
-        //public bool Future { get; set; }
+        public bool Future { get; set; }
         public override string ToString() {
             return name + "  " + Occupied;
         }
