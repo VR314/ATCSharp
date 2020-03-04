@@ -1,2 +1,0 @@
-﻿namespace ATCSharp_SimSharp {
-}

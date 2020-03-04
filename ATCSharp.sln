@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ATCSharp_NSim", "ATCSharp\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ATCSharp_SimSharp", "ATCSharp_SimSharp\ATCSharp_SimSharp.csproj", "{6686A130-4269-4161-910E-4C957226D384}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "GUI\GUI.csproj", "{39115FE5-554B-4DA5-8241-B1EEADF0EEC3}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{6686A130-4269-4161-910E-4C957226D384}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6686A130-4269-4161-910E-4C957226D384}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6686A130-4269-4161-910E-4C957226D384}.Release|Any CPU.Build.0 = Release|Any CPU
-		{39115FE5-554B-4DA5-8241-B1EEADF0EEC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39115FE5-554B-4DA5-8241-B1EEADF0EEC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39115FE5-554B-4DA5-8241-B1EEADF0EEC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39115FE5-554B-4DA5-8241-B1EEADF0EEC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
