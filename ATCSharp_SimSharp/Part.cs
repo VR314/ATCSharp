@@ -6,15 +6,20 @@ namespace ATCSharp_SimSharp {
     public class Part {
         public Part(string name) {
             this.name = name;
-            Occupied = false;
+            Occupied = null;
+            Future = null;
         }
 
         public string name { get; set; }
-        public bool Occupied { get; set; }
+        public Plane Occupied { get; set; }
 
-        public bool Future { get; set; }
+        public Plane Future { get; set; }
         public override string ToString() {
-            return name + "  " + Occupied;
+            if (Occupied == null) {
+                return name + " " + null;
+            } else {
+                return name + "  " + Occupied.ID;
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using SimSharp;
 
 namespace ATCSharp_SimSharp {
     public class Program {
+        private const Plane.Algorithm algorithm = Plane.Algorithm.FWCHECK;
         public const int NUM_GATES = 7;
         public static readonly TimeSpan SimTime = TimeSpan.FromHours(10);
         public static List<Part> Gates = new List<Part>();
@@ -24,7 +25,7 @@ namespace ATCSharp_SimSharp {
                 reader.ReadLine(); //takes out first line
                 while (!reader.EndOfStream) {
                     string[] props = reader.ReadLine().Split(',');
-                    planes.Add(new Plane(env, props[1], Convert.ToInt32(props[2]), TimeSpan.FromMinutes(Convert.ToDouble(props[3])), Plane.Algorithm.FCFS));
+                    planes.Add(new Plane(env, ID: props[1], gate: Convert.ToInt32(props[2]), spawn: TimeSpan.FromMinutes(Convert.ToDouble(props[3])), algorithm));
                 }
             }
 
