@@ -13,14 +13,13 @@ namespace ATCSharp_SimSharp {
         public static Part Runway = new Part("Runway");
         public static Part South = new Part("South Off-Ramp");
         public static List<Part> Taxiways = new List<Part>();
+        private static List<Plane> planes = new List<Plane>();
 
         public static void Simulate(int rseed) {
-            // Setup and start the simulation
-            // Create an environment and start the setup process
-            var start = new DateTime(2014, 2, 1);
+            var start = new DateTime(2000, 1, 1);
             var env = new ThreadSafeSimulation(start, rseed);
             env.Log("== Airport ==");
-            List<Plane> planes = new List<Plane>();
+            generatePlanes(25);
             using (var reader = new StreamReader(@"C:\Users\cheez\Google Drive\10th Grade\Science Fair\ATCSharp\ATCSharp_SimSharp\planes.csv")) {
                 reader.ReadLine(); //takes out first line
                 while (!reader.EndOfStream) {
@@ -33,7 +32,7 @@ namespace ATCSharp_SimSharp {
             env.Run(SimTime);
 
             // Analyis/results
-            env.Log("results after {0} hours.", (env.Now - start).TotalHours);
+            writeResults();
         }
         public static void Main(string[] args) {
             for (int i = 0; i < NUM_GATES; i++) {
@@ -42,6 +41,29 @@ namespace ATCSharp_SimSharp {
             }
 
             Simulate(43);
+        }
+
+        static void generatePlanes(int number) {
+            using (var writer = new StreamWriter(@"C:\Users\cheez\Google Drive\10th Grade\Science Fair\ATCSharp\ATCSharp_SimSharp\planes.csv")) {
+                writer.WriteLine("NUMBER,ID,GATE - 1 INDEX,SPAWNTIME(MIN)"); //header
+                for(int i = 0; i < number; i++) {
+                    String s = "";
+                    s += i.ToString();
+                    s += ",";
+                    s += (char)(65 + i) + i.ToString();
+                    s += ",";
+                    s += new Random().Next(1, NUM_GATES).ToString();
+                    s += ",";
+                    s += new Random().Next(1, number * 20).ToString();
+                    writer.WriteLine(s);
+                }
+            }
+        }
+
+        static void writeResults() { //TODO
+            foreach (Plane p in planes) {
+
+            }
         }
     }
 }

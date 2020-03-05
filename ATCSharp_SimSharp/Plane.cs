@@ -5,6 +5,8 @@ using SimSharp;
 
 namespace ATCSharp_SimSharp {
     public class Plane : ActiveObject<Simulation> {
+        public readonly int GateIndex;
+        public readonly string ID;
         public readonly Direction dirLAND;
         public readonly Direction dirTAKEOFF;
         public enum Direction {
@@ -13,14 +15,11 @@ namespace ATCSharp_SimSharp {
         }
 
         private Algorithm algorithm;
-
         public enum Algorithm {
             FCFS,
             FWCHECK
         }
 
-        public readonly int GateIndex;
-        public readonly string ID;
         private readonly Process Process;
         private int currIndex = -1;
         private bool leave;
@@ -28,6 +27,20 @@ namespace ATCSharp_SimSharp {
         private List<Part> parts;
         private Simulation simulation;
         private TimeSpan spawn;
+
+        #region Stats
+        private double[] times = new double[4]; //time at each milestone (in mins)
+            /*
+             * 0. land time (compare to spawn)
+             * 1. gate arrival time (compare to predetermined gate time)
+             * 2. gate leave time (^^)
+             * 3. takeoff time (compare to predermined)
+             */
+
+
+        #endregion Stats
+
+
 
         public Plane(ThreadSafeSimulation env, string ID, int gate, TimeSpan spawn, Algorithm algorithm) : base(env) {
             parts = new List<Part>();
@@ -119,6 +132,7 @@ namespace ATCSharp_SimSharp {
                     }
                 }
                 return true;
+
             } else if (algorithm.Equals(Algorithm.FWCHECK)){
                 int check;
                 if(currIndex + 3 > parts.Count) {
@@ -155,27 +169,22 @@ namespace ATCSharp_SimSharp {
                             yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(2, 5)));
                             parts[currIndex].Occupied = null;
                             simulation.Log(ID + " has left at " + simulation.NowD / 60);
+                            times[3] = simulation.NowD / 60;
                             left = true;
                             yield return simulation.TimeoutD(Program.SimTime.Hours - Environment.Now.Hour);
                         } else if (ChangePart()) { //if part is at GATE
+                            times[1] = simulation.NowD / 60;
                             yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(15, 20)));
+                            times[2] = simulation.NowD / 60;
                             leave = true;
                             Program.Gates[GateIndex].Occupied = null;
                             makePartsList();
                             currIndex = 0;
-                        } else if (currIndex != oldIndex) {
-                            //simulation.Log(this.ID + " is on " + parts[currIndex].name + " at " + simulation.Now + " \n");
-                             /* foreach(Part p in parts) {
-                                if (p.Future != null) {
-                                    simulation.Log(p + " " + p.Future.ID);
-                                } else {
-                                    simulation.Log(p + " " + false);
-                                }
-                            } */
-                        }
+                        } //else if (currIndex != oldIndex) {  }
 
                         // moving
                         yield return Environment.Timeout(TimeSpan.FromMinutes(new Random().Next(1, 3)));
+                        if(times[0] == 0) { times[0] = simulation.NowD / 60; }
                     } else { break; }
                 }
             }
