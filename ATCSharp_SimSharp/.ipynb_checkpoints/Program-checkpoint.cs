@@ -53,6 +53,7 @@ namespace ATCSharp_SimSharp {
 
         public static void Main(string[] args) {
             Random r = new Random();
+            //generatePlanes(1000);
             for (int j = 0; j < 1000; j++) {
                 double avg = 0;
                 avg += Simulate(j, iteration: j);

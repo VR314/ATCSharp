@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="ATCSharp_SimSharp.Part">
+    <Position X="0.5" Y="2.25" Width="2" />
+    <Members>
+      <Method Name="Part" Hidden="true" />
+      <Method Name="ToString" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAEAAAAAAEAAAAAAAAAAAEAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Part.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ATCSharp_SimSharp.Plane">
+    <Position X="2.75" Y="0.5" Width="2.25" />
+    <Members>
+      <Field Name="algorithm" Hidden="true" />
+      <Method Name="ChangePart" Hidden="true" />
+      <Field Name="leave" Hidden="true" />
+      <Field Name="left" Hidden="true" />
+      <Method Name="makePartsList" Hidden="true" />
+      <Method Name="Moving" Hidden="true" />
+      <Method Name="Plane" Hidden="true" />
+      <Field Name="Process" Hidden="true" />
+      <Field Name="pTimes" Hidden="true" />
+      <Field Name="simulation" Hidden="true" />
+      <Field Name="times" Hidden="true" />
+    </Members>
+    <NestedTypes>
+      <Enum Name="ATCSharp_SimSharp.Plane.Direction" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Plane.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="ATCSharp_SimSharp.Plane.Algorithm" Collapsed="true">
+        <Members>
+          <Field Name="FCFS" Hidden="true" />
+          <Field Name="FWCHECK" Hidden="true" />
+        </Members>
+        <TypeIdentifier>
+          <NewMemberFileName>Plane.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>BAAAIBAYAAAAkAAQAgAAAAEBAgAIAAAFAABAEAAAIAA=</HashCode>
+      <FileName>Plane.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="ATCSharp_SimSharp.Program">
+    <Position X="0.5" Y="0.5" Width="2" />
+    <Members>
+      <Field Name="algorithm" Hidden="true" />
+      <Field Name="Gates" Hidden="true" />
+      <Field Name="North" Hidden="true" />
+      <Field Name="NUM_GATES" Hidden="true" />
+      <Field Name="NUM_PLANES" Hidden="true" />
+      <Field Name="NUM_TIMES" Hidden="true" />
+      <Field Name="planes" Hidden="true" />
+      <Field Name="Runway" Hidden="true" />
+      <Field Name="SimTime" Hidden="true" />
+      <Field Name="South" Hidden="true" />
+      <Field Name="Taxiways" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>RBCAAAAAAAAAAAAAAAAhAAABEIQAAgAAAAAIBAUAAAA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

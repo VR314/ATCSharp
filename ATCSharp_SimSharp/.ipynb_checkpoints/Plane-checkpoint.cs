@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SimSharp;
 
@@ -21,8 +21,6 @@ namespace ATCSharp_SimSharp {
             FCFS,
             FWCHECK
         }
-        
-        public int[] times = new int[4];
 
         private readonly Process Process;
         private int currIndex = -1;
@@ -31,6 +29,19 @@ namespace ATCSharp_SimSharp {
         private List<Part> parts;
         private Simulation simulation;
         private TimeSpan spawn;
+
+        #region Stats
+
+        public double[] pTimes = new double[4];
+        public double[] times = new double[4]; //time at each milestone (in mins)
+        /*
+         * 0. land time (compare to spawn)
+         * 1. gate arrival time (compare to predetermined gate time)
+         * 2. gate leave time (^^)
+         * 3. takeoff time (compare to predermined)
+         */
+
+        #endregion Stats
 
         public Plane(ThreadSafeSimulation env, string ID, int gate, TimeSpan spawn, Algorithm algorithm) : base(env) {
             parts = new List<Part>();
@@ -47,7 +58,10 @@ namespace ATCSharp_SimSharp {
                 dirLAND = Direction.SOUTH;
                 dirTAKEOFF = Direction.NORTH;
             }
+
+            // Start "working" and "break_machine" processes for this machine.
             Process = env.Process(Moving());
+            //env.Process(BreakMachine());
         }
 
         private void makePartsList() {
@@ -175,6 +189,120 @@ namespace ATCSharp_SimSharp {
                     } else { break; }
                 }
             }
+
+            /*private bool ChangePart() {
+                if (currIndex > 0 && currIndex + 1 == parts.Count) { //end of the current list
+                    if (!leave) { //if at gate
+                        Program.Gates[GateIndex].Occupied = this; Program.Gates[GateIndex].Future = null;
+                        return true;
+                    }
+                    parts[currIndex - 1].Occupied = null;
+                    currIndex = 0;
+                } else {
+                    currIndex++;
+                    if (checkMovement()) {
+                        //move to the next one, release from the last one
+                        parts[currIndex].Occupied = this; parts[currIndex].Future = null;
+
+                        if (parts.Count > currIndex + 1) {
+                            if (parts[currIndex + 1].Future == null)
+                                parts[currIndex + 1].Future = (this);
+                        }
+
+                        if (parts.Count > currIndex + 2) {
+                            if (parts[currIndex + 2].Future == null)
+                                parts[currIndex + 2].Future = (this);
+                        }
+
+                        if (currIndex > 0) {
+                            parts[currIndex - 1].Occupied = null;
+                        }
+                        simulation.Log(ID + " is at " + parts[currIndex]);
+                    } else {
+                        currIndex--;
+                    }
+                }
+                return false;
+            }
+
+            private bool checkMovement() {
+                if (algorithm.Equals(Algorithm.FCFS)) { //CHECKS THE ENTIRE PATH
+                    for (int i = currIndex; i < parts.Count; i++) {
+                        if (parts[i].Occupied != this && parts[i].Occupied != null) {
+                            return false;
+                        }
+                    }
+                    return true;
+                } else if (algorithm.Equals(Algorithm.FWCHECK)) {
+                    int check;
+                    if (currIndex + 2 > parts.Count) {
+                        check = parts.Count;
+                    } else {
+                        check = currIndex + 2;
+                    }
+
+                    for (int i = currIndex; i < check; i++) { //check the 2 in front
+                        if ((leave || currIndex > 1) && (parts[i].Future != null && parts[i].Future != this)) {
+                            return false;
+                        }
+                    }
+
+                    if (parts[currIndex].Occupied != this && parts[currIndex].Occupied != null) {
+                        return false;
+                    }
+
+                    return true;
+                } else {
+                    return true;
+                }
+            }
+
+            private IEnumerable<Event> Moving() {
+                bool spawned = false;
+                while (true) {
+                    //simulation.Log(ID + " is running at " + simulation.Now);
+                    if (!spawned && (spawn.Hours * 60 + spawn.Minutes) > simulation.NowD / 60) {
+                        spawned = true;
+                        yield return simulation.Timeout(TimeSpan.FromMinutes((spawn.Hours * 60 + spawn.Minutes) - simulation.NowD / 60));
+                    } else {
+                        int oldIndex = currIndex;
+                        if (!left) {
+                            if (leave && currIndex + 1 == parts.Count) { //LEAVING
+                                yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(2, 5)));
+                                parts[currIndex].Occupied = null;
+                                times[3] = simulation.NowD / 60;
+                                simulation.Log(ID + " has left at " + simulation.NowD / 60);
+                                left = true;
+                                yield return simulation.TimeoutD(Program.SimTime.Hours - Environment.Now.Hour);
+                            } else if (ChangePart()) { //if part is at GATE
+                                simulation.Log(ID + " at gate at " + simulation.NowD / 60);
+                                times[1] = simulation.NowD / 60; //save time at gate
+                                yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(15, 20))); //wait at gate
+                                times[2] = simulation.NowD / 60; //save time leaving gate
+                                leave = true;
+                                if (Program.Gates[GateIndex].Occupied == this) {
+                                    Program.Gates[GateIndex].Occupied = null;
+                                }
+                                makePartsList();
+                                currIndex = 0;
+                            } else if (currIndex != oldIndex) {
+                                if (times[0] == 0) { times[0] = simulation.NowD / 60; }
+                            }
+
+                            foreach(Part p in parts) {
+                                Console.WriteLine(p);
+                            }
+                            Console.WriteLine("\n");
+                            // moving
+                            yield return Environment.Timeout(TimeSpan.FromMinutes(new Random().Next(1, 3)));
+                        } else {
+                            simulation.Log(times[3].ToString());
+                            break;
+                        }
+                    }
+                }
+            }
+                */
         }
     }
 }
