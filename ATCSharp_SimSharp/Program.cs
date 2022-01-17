@@ -58,7 +58,8 @@ namespace ATCSharp_SimSharp {
                 avg += Simulate(j, iteration: j);
 
                 // Analyis/results
-                writeResults(avg);
+                // writeResults(avg);
+                Console.WriteLine(avg);
             }
         }
 
