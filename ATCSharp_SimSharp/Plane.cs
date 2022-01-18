@@ -156,13 +156,13 @@ namespace ATCSharp_SimSharp {
                             yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(2, 5)));
                             parts[currIndex].Occupied = null;
                             simulation.Log(ID + " has left at " + simulation.NowD / 60);
-                            times[3] = simulation.NowD / 60;
+                            times[3] = (int)(simulation.NowD / 60);
                             left = true;
                             yield return simulation.TimeoutD(Program.SimTime.Hours - Environment.Now.Hour);
                         } else if (ChangePart()) { //if part is at GATE
-                            times[1] = simulation.NowD / 60;
+                            times[1] = (int)(simulation.NowD / 60);
                             yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(15, 20)));
-                            times[2] = simulation.NowD / 60;
+                            times[2] = (int)(simulation.NowD / 60);
                             leave = true;
                             Program.Gates[GateIndex].Occupied = null;
                             makePartsList();
@@ -171,7 +171,7 @@ namespace ATCSharp_SimSharp {
 
                         // moving
                         yield return Environment.Timeout(TimeSpan.FromMinutes(new Random().Next(1, 3)));
-                        if (times[0] == 0) { times[0] = simulation.NowD / 60; }
+                        if (times[0] == 0) { times[0] = (int)(simulation.NowD / 60); }
                     } else { break; }
                 }
             }

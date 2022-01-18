@@ -31,14 +31,13 @@ namespace ATCSharp_SimSharp {
             DateTime start = new DateTime(2000, 1, 1);
             ThreadSafeSimulation env = new ThreadSafeSimulation(start, rseed);
             Console.WriteLine("\n\n== Airport ==");
-            using (StreamReader reader = new StreamReader(@"C:\Users\cheez\Google Drive\10th Grade\Science Fair\ATCSharp\scenarios\" + iteration + ".csv")) {
+            using (StreamReader reader = new StreamReader(Path.Combine(System.Environment.CurrentDirectory, @"planes1.csv"))) {
                 reader.ReadLine(); //takes out first line
                 while (!reader.EndOfStream) {
                     string[] props = reader.ReadLine().Split(',');
                     planes.Add(new Plane(env, ID: props[1], gate: Convert.ToInt32(props[2]), spawn: TimeSpan.FromMinutes(Convert.ToDouble(props[3])), algorithm));
                 }
             }
-
 
             for (int i = 0; i <= planes.Max(p => p.GateIndex); i++) {
                 Taxiways.Add(new Part("TS" + i));
@@ -53,7 +52,7 @@ namespace ATCSharp_SimSharp {
 
         public static void Main(string[] args) {
             Random r = new Random();
-            for (int j = 0; j < 1000; j++) {
+            for (int j = 0; j < 1; j++) {
                 double avg = 0;
                 avg += Simulate(j, iteration: j);
 
@@ -70,7 +69,7 @@ namespace ATCSharp_SimSharp {
             for (int i = 0; i < number; i++) {
                 NUM_PLANES = new Random(i).Next(1, 25);
                 NUM_GATES = new Random(i).Next(1, 10);
-                using (var writer = new StreamWriter(System.IO.File.Create(@"C: \Users\cheez\Google Drive\10th Grade\Science Fair\ATCSharp\scenarios\" + i + ".csv"))) {
+                using (var writer = new StreamWriter(System.IO.File.Create(@"scenarios\" + i + ".csv"))) {
                     writer.WriteLine("NUMBER,ID,GATE - 1 INDEX,SPAWNTIME(MIN)"); //header
                     for (int j = 0; j < NUM_PLANES; j++) {
                         String s = "";
