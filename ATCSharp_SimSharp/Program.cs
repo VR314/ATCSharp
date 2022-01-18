@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using SimSharp;
 
 namespace ATCSharp_SimSharp {
-
     public class Program {
         private const Plane.Algorithm algorithm = Plane.Algorithm.FCFS;
         public static int NUM_GATES;

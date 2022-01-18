@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using SimSharp;
 
 namespace ATCSharp_SimSharp {
@@ -21,7 +22,7 @@ namespace ATCSharp_SimSharp {
             FCFS,
             FWCHECK
         }
-        
+
         public int[] times = new int[4];
 
         private readonly Process Process;
@@ -146,7 +147,7 @@ namespace ATCSharp_SimSharp {
             while (true) {
                 //simulation.Log(ID + " is running at " + simulation.Now);
                 if ((spawn.Hours * 60 + spawn.Minutes) > simulation.NowD / 60) {
-                    if(Program.Taxiways.Count > 0)
+                    if (Program.Taxiways.Count > 0)
                         makePartsList();
                     yield return simulation.Timeout(TimeSpan.FromMinutes((spawn.Hours * 60 + spawn.Minutes) - simulation.NowD / 60));
                 } else {
