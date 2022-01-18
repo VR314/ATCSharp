@@ -1,3 +1,6 @@
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
+
 using SimSharp;
 
 using System;
@@ -37,8 +40,8 @@ namespace ATCSharp_SimSharp {
         private bool leave;
         private bool left;
         private List<Part> parts;
-        private Simulation simulation;
-        private TimeSpan spawn;
+        private readonly Simulation simulation;
+        private readonly TimeSpan spawn;
 
         public Plane(ThreadSafeSimulation env, string ID, int gate, TimeSpan spawn, Algorithm algorithm) : base(env) {
             parts = new List<Part>();
@@ -58,7 +61,7 @@ namespace ATCSharp_SimSharp {
             Process = env.Process(Moving());
         }
 
-        private void makePartsList() {
+        private void MakePartsList() {
             parts = new List<Part>();
             //these loops create the parts List depending on the location & target of the Plane
             if (leave) {
@@ -103,7 +106,7 @@ namespace ATCSharp_SimSharp {
                 currIndex = 0;
             } else {
                 currIndex++;
-                if (checkMovement()) {
+                if (CheckMovement()) {
                     //move to the next one, release from the last one
                     parts[currIndex].Occupied = null; parts[currIndex].Future = null;
                     if (parts.Count > currIndex + 1) { parts[currIndex + 1].Future = this; }
@@ -119,7 +122,7 @@ namespace ATCSharp_SimSharp {
             return false;
         }
 
-        private bool checkMovement() {
+        private bool CheckMovement() {
             if (algorithm.Equals(Algorithm.FCFS)) { //CHECKS THE ENTIRE PATH
                 for (int i = currIndex; i < parts.Count; i++) {
                     if (parts[i].Occupied != this && parts[i].Occupied != null) {
@@ -155,10 +158,10 @@ namespace ATCSharp_SimSharp {
                 //simulation.Log(ID + " is running at " + simulation.Now);
                 if ((spawn.Hours * 60 + spawn.Minutes) > simulation.NowD / 60) {
                     if (Program.Taxiways.Count > 0)
-                        makePartsList();
+                        MakePartsList();
                     yield return simulation.Timeout(TimeSpan.FromMinutes((spawn.Hours * 60 + spawn.Minutes) - simulation.NowD / 60));
                 } else {
-                    int oldIndex = currIndex;
+                    // int oldIndex = currIndex;
                     if (!left) {
                         if (leave && currIndex + 1 == parts.Count) {
                             yield return simulation.Timeout(TimeSpan.FromMinutes(new Random().Next(2, 5)));
@@ -173,7 +176,7 @@ namespace ATCSharp_SimSharp {
                             times[2] = (int)(simulation.NowD / 60);
                             leave = true;
                             Program.Gates[GateIndex].Occupied = null;
-                            makePartsList();
+                            MakePartsList();
                             currIndex = 0;
                         } //else if (currIndex != oldIndex) {  }
 
@@ -184,5 +187,8 @@ namespace ATCSharp_SimSharp {
                 }
             }
         }
+
+        public override string ToString() => JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented,
+            new Newtonsoft.Json.JsonConverter[] { new StringEnumConverter() });
     }
 }

@@ -1,4 +1,10 @@
-﻿namespace ATCSharp_SimSharp {
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
+using System;
+using System.Collections.Generic;
+
+namespace ATCSharp_SimSharp {
 
     /* Vision:
      *  - each runway has a corresponding parallel runway
@@ -15,24 +21,37 @@
 
     public class Part {
         public Part(string name) {
-            this.name = name;
+            this.Name = name;
+            this.Planes = new List<Plane>();
+            this.Connected = Array.Empty<Part>();
+            this.Capacity = 1;
             Occupied = null;
             Future = null;
         }
 
-        public string name { get; set; }
+        public string Name { get; set; }
 
-        //TODO: make an array of planes, and make Occupied a get() that returns whether planes.length == capacity
-        //TODO: implement capacity, time duration for taxi, connected tuple, and time-blocking data structure
-        public Plane Occupied { get; set; }
-        public Plane Future { get; set; }
+        public Part[] Connected { get; }
 
-        public override string ToString() {
-            if (Future == null) {
-                return name + " ";
-            } else {
-                return name + "  " + Future.ID;
+        public List<Plane> Planes { get; }
+
+        public int Capacity { get; }
+
+        // underscore to avoid naming collision
+        public bool OccupiedTemp {
+            get {
+                return Planes.Count == Capacity;
             }
         }
+
+        // TODO: make an array of planes, and make Occupied a get() that returns whether planes.length == capacity
+        // TODO: implement capacity, time duration for taxi, connected tuple, and time-blocking data structure
+        /* TODO: REMOVE */
+        public Plane Occupied { get; set; }
+        /* TODO: TO REMOVE */
+        public Plane Future { get; set; }
+
+        public override string ToString() => JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented,
+            new Newtonsoft.Json.JsonConverter[] { new StringEnumConverter() });
     }
 }
