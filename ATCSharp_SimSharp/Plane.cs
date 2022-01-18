@@ -1,7 +1,12 @@
+using SimSharp;
+
 using System;
 using System.Collections.Generic;
 
-using SimSharp;
+/* Algorithms:
+ * - Decentralized Limited: like FWCHECK with limited scope
+ * - Decentralized Global: Using Time-Blocking Queues (requires multiple paths between points? -- or just forces more efficient waiting?)
+ */
 
 namespace ATCSharp_SimSharp {
 
@@ -20,7 +25,9 @@ namespace ATCSharp_SimSharp {
 
         public enum Algorithm {
             FCFS,
-            FWCHECK
+            FWCHECK,
+            DLimited,
+            DGlobal
         }
 
         public int[] times = new int[4];

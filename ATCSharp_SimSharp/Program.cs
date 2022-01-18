@@ -1,9 +1,9 @@
-﻿using System;
+﻿using SimSharp;
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
-using SimSharp;
 
 namespace ATCSharp_SimSharp {
     public class Program {
