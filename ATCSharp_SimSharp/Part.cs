@@ -17,28 +17,34 @@ using System.Collections.Generic;
  *  - checking when there is a traffic jam!
  */
 
+public struct TimeBlock {
+	public Plane plane;
+	public int startTime;
+	public int endTime;
 
-// TODO: implement time-blocking data structure
-public class Part {
-	public Part(string name, int capacity = 1) {
-		this.Name = name;
-		this.Capacity = capacity;
+	public int length {
+		get {
+			return (int)(endTime - startTime);
+		}
 	}
+}
 
+public abstract class Part {
 	public string Name { get; init; }
-
 	public Part[] Connected { get; } = Array.Empty<Part>();
-
 	public List<Plane> Planes { get; set; } = new();
-
 	public int Capacity { get; init; }
-
 	public bool Occupied {
 		get {
 			return Planes.Count == Capacity;
 		}
 	}
 
+	public Part(string name, int capacity = 1) {
+		this.Name = name;
+		this.Capacity = capacity;
+	}
+
 	public override string ToString() => JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented,
-		new Newtonsoft.Json.JsonConverter[] { new StringEnumConverter() });
+		new JsonConverter[] { new StringEnumConverter() });
 }

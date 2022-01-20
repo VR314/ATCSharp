@@ -20,7 +20,8 @@ public class Program {
 	public static List<Plane> Planes { get; private set; } = new();
 
 	public static void Main() {
-		Console.WriteLine(new Part("test part"));
+		Console.WriteLine(new Taxiway("test taxiway"));
+		Console.WriteLine(new Runway("test runway", Direction.NORTH));
 		Console.WriteLine(new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)));
 		Env.Run(SimDuration);
 	}

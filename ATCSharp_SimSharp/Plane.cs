@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 
 /* Algorithms:
- * - Decentralized Limited: like FWCHECK with limited scope
+ * - Decentralized Limited: like FCFS with bigger scope
  * - Decentralized Global: Using Time-Blocking Queues (requires multiple paths between points? -- or just forces more efficient waiting?)
  */
 
@@ -19,6 +19,14 @@ public enum Direction {
 public enum Algorithm {
 	DLimited,
 	DGlobal
+}
+
+public enum State {
+	LANDING,
+	TAXI_IN,
+	GATE,
+	TAXI_OUT,
+	TAKEOFF
 }
 
 public struct PlaneData {
@@ -68,6 +76,6 @@ public class Plane : ActiveObject<Simulation> {
 		}
 	}
 
-	public override string ToString() => JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented,
-		new Newtonsoft.Json.JsonConverter[] { new StringEnumConverter() });
+	public override string ToString() => JsonConvert.SerializeObject(this, Formatting.Indented,
+		new JsonConverter[] { new StringEnumConverter() });
 }
