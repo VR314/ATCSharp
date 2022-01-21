@@ -15,7 +15,7 @@ public struct Link {
 }
 
 public class Program {
-	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(12);
+	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(23);
 	public static int NUM_GATES { get; private set; }
 	public static int NUM_PLANES { get; private set; }
 	public static double NUM_TIMES { get; private set; }
@@ -28,14 +28,9 @@ public class Program {
 		// Console.WriteLine(new Runway("test runway", Direction.NORTH));
 		// Console.WriteLine(new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)));
 		List<Plane> planes = new() {
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "P1", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "P2", StartTime.AddMinutes(10)),
+
 		};
 
 		List<Gate> gates = new() {
@@ -66,6 +61,10 @@ public class Program {
 		};
 
 		Airport = new Airport(planes, parts, gates, links);
+		foreach (Plane p in Airport.Planes) {
+			p.Instantiate();
+		}
+
 		Env.Run(SimDuration);
 	}
 

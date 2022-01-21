@@ -40,6 +40,9 @@ public abstract class Part {
 	public int Capacity { get; init; }
 	public bool Occupied {
 		get {
+			if (Planes.Count > Capacity) {
+				Console.Error.WriteLine("MORE PLANES THAN POSSIBLE ON " + Name);
+			}
 			return Planes.Count == Capacity;
 		}
 	}

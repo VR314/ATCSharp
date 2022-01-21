@@ -41,11 +41,13 @@ public class Plane : ActiveObject<Simulation> {
 	private readonly DateTime spawnTime;
 	private readonly Simulation simulation = Program.Env;
 	private readonly Process process;
+	private Part currentPart;
 
 	public PlaneData Data = new PlaneData();
 	public Direction CurrDirection { get; }
 	public bool Completed { get; private set; } = false;
 	private Queue<Part> partsQueue = new();
+	private Part target => partsQueue.ToArray()[partsQueue.Count - 1];
 
 	public Plane(Algorithm algorithm, string ID, DateTime spawnTime) : base(Program.Env) {
 		this.ID = ID;
@@ -54,27 +56,64 @@ public class Plane : ActiveObject<Simulation> {
 		this.process = simulation.Process(Moving());
 	}
 
-	private void MakePartsQueue() {
+	// run on all planes after Airport is defined
+	public void Instantiate() {
+		currentPart = Program.Airport.Runways[0];
+		MakePartsQueue();
+	}
 
+	// for now, search for all parts in the positive direction
+	private void MakePartsQueue() {
+		Part p = currentPart;
+		partsQueue.Enqueue(p);
+		do {
+			p = p.Connected[(int)Direction.POSITIVE][0];
+			partsQueue.Enqueue(p);
+		} while (p.Connected[(int)Direction.POSITIVE].Count > 0);
 	}
 
 	private void ChangePart() {
-
+		Part oldPart = currentPart;
+		Part nextPart = partsQueue.Dequeue();
+		oldPart.Planes.Remove(this);
+		nextPart.Planes.Add(this);
+		currentPart = nextPart;
 	}
 
 	private bool CheckMovement() {
-		return true;
+		if (!Completed && partsQueue.Count > 0 && !partsQueue.Peek().Occupied) {
+			return true;
+		} else if (partsQueue.Count == 0) {
+			Program.Airport.Planes.Remove(this);
+			Program.Airport.CompletedPlanes.Add(this);
+			Completed = true;
+			currentPart.Planes.Remove(this);
+			simulation.Log($"{simulation.NowD / 60}\t{ID} is completed!");
+			return false;
+		} else {
+			return false;
+		}
 	}
 
 	private IEnumerable<Event> Moving() {
+		// only runs 24 hours max
+		if (simulation.NowD / 60 > 60 * spawnTime.Hour + spawnTime.Minute) {
+			yield return simulation.Timeout(TimeSpan.FromMinutes((simulation.NowD / 60) - (60 * spawnTime.Hour + spawnTime.Minute)));
+		}
+		simulation.Log($"{simulation.NowD / 60}\t{ID} starting at {currentPart.Name}");
 		while (true) {
-
-			var x = simulation.Timeout(TimeSpan.FromMinutes((simulation.NowD / 60) + 5));
-			yield return x;
-			// simulation.Log(ID + " running at " + simulation.NowD / 60);
-
-
-			// yield return null;
+			if (CheckMovement()) {
+				ChangePart();
+				simulation.Log($"{simulation.NowD / 60}\t{ID} --> {currentPart.Name}");
+				yield return simulation.Timeout(TimeSpan.FromMinutes(5));
+			} else {
+				if (Completed) {
+					yield return simulation.Timeout(TimeSpan.FromMinutes(1000000000));
+				} else {
+					// simulation.Log($"{simulation.NowD / 60}\t{ID} == {currentPart.Name}");
+					yield return simulation.Timeout(TimeSpan.FromMinutes(1));
+				}
+			}
 		}
 	}
 
