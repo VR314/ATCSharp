@@ -16,20 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="planes.csv" />
-    <None Remove="planes1.csv" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="planes.csv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="planes1.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 

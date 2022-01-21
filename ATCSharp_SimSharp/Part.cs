@@ -31,7 +31,11 @@ public struct TimeBlock {
 
 public abstract class Part {
 	public string Name { get; init; }
-	public Part[] Connected { get; } = Array.Empty<Part>();
+
+	/// <summary>
+	/// [[Positive], [Negative]]
+	/// </summary>
+	public List<Part>[] Connected { get; } = new List<Part>[2] { new List<Part>(), new List<Part>() };
 	public List<Plane> Planes { get; set; } = new();
 	public int Capacity { get; init; }
 	public bool Occupied {

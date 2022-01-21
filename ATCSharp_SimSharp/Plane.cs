@@ -11,10 +11,9 @@ using System.Collections.Generic;
  * - Decentralized Global: Using Time-Blocking Queues (requires multiple paths between points? -- or just forces more efficient waiting?)
  */
 
-
 public enum Direction {
-	NORTH,
-	SOUTH
+	POSITIVE,
+	NEGATIVE
 }
 public enum Algorithm {
 	DLimited,
@@ -69,10 +68,13 @@ public class Plane : ActiveObject<Simulation> {
 
 	private IEnumerable<Event> Moving() {
 		while (true) {
+
 			var x = simulation.Timeout(TimeSpan.FromMinutes((simulation.NowD / 60) + 5));
-			Console.WriteLine("interval: " + (simulation.NowD / 60 + 5));
 			yield return x;
-			simulation.Log(ID + " running at " + simulation.NowD / 60);
+			// simulation.Log(ID + " running at " + simulation.NowD / 60);
+
+
+			// yield return null;
 		}
 	}
 

@@ -9,6 +9,11 @@ using System.Threading;
 
 // INFO: USE OPTIMIZED RELEASE BINARY FOR GETTING DATA
 
+public struct Link {
+	public Part a;
+	public Part b;
+}
+
 public class Program {
 	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(12);
 	public static int NUM_GATES { get; private set; }
@@ -16,13 +21,51 @@ public class Program {
 	public static double NUM_TIMES { get; private set; }
 	public static DateTime StartTime { get; private set; } = new DateTime(2000, 1, 1);
 	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(StartTime, 1);
-	public static List<Part> Taxiways { get; private set; } = new();
-	public static List<Plane> Planes { get; private set; } = new();
+	public static Airport Airport { get; set; }
 
 	public static void Main() {
-		Console.WriteLine(new Taxiway("test taxiway"));
-		Console.WriteLine(new Runway("test runway", Direction.NORTH));
-		Console.WriteLine(new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)));
+		// Console.WriteLine(new Taxiway("test taxiway"));
+		// Console.WriteLine(new Runway("test runway", Direction.NORTH));
+		// Console.WriteLine(new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)));
+		List<Plane> planes = new() {
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+			new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)),
+		};
+
+		List<Gate> gates = new() {
+			new Gate("G1"),
+			new Gate("G2")
+		};
+
+		List<Part> parts = new() {
+			new Runway("0 - Far Left"),
+			new Taxiway("T1"),
+			new Taxiway("T2 + G1", gates[0]),
+			new Taxiway("T3 + G2", gates[1]),
+			new Taxiway("T4"),
+			new Taxiway("T5"),
+			new Runway("6 - Bottom Right"),
+			new Runway("7 - Top Right"),
+		};
+
+		// a --> b is the "positive" direction, so b.connected[1] += a; && a.connected[0] += b;
+		List<Link> links = new() {
+			new Link { a = parts[0], b = parts[1] },
+			new Link { a = parts[1], b = parts[2] },
+			// dividing airport in half: left runway can only go to left half gates (<= n/2)
+			new Link { a = parts[7], b = parts[5] },
+			new Link { a = parts[5], b = parts[4] },
+			new Link { a = parts[6], b = parts[4] },
+			new Link { a = parts[4], b = parts[3] },
+		};
+
+		Airport = new Airport(planes, parts, gates, links);
 		Env.Run(SimDuration);
 	}
 
@@ -34,6 +77,6 @@ public class Program {
 		// Execute!
 		Env.Run(SimDuration);
 
-		return Planes.Max(p => p.Data.TakeoffTime);
+		return Airport.Planes.Max(p => p.Data.TakeoffTime);
 	}
 }
