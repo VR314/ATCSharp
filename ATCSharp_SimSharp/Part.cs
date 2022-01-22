@@ -17,18 +17,6 @@ using System.Collections.Generic;
  *  - checking when there is a traffic jam!
  */
 
-public struct TimeBlock {
-	public Plane plane;
-	public int startTime;
-	public int endTime;
-
-	public int length {
-		get {
-			return (int)(endTime - startTime);
-		}
-	}
-}
-
 public abstract class Part {
 	public string Name { get; init; }
 
@@ -38,6 +26,7 @@ public abstract class Part {
 	public List<Part>[] Connected { get; } = new List<Part>[2] { new List<Part>(), new List<Part>() };
 	public List<Plane> Planes { get; set; } = new();
 	public int Capacity { get; init; }
+	private List<TimeBlock> timeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.Part.Equals(this));
 	public bool Occupied {
 		get {
 			if (Planes.Count > Capacity) {

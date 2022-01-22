@@ -56,9 +56,7 @@ public class Program {
 		};
 
 		Airport = new Airport(planes, parts, gates, links);
-		foreach (Plane p in Airport.Planes) {
-			p.Instantiate();
-		}
+		Airport.Instantiate();
 
 		Env.Run(SimDuration);
 	}
