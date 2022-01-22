@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ATCSharp_SimSharp": {
+      "commandName": "Project",
+      "hotReloadEnabled": false,
+      "nativeDebugging": false
+    }
+  }
+}

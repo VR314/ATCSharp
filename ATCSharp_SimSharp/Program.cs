@@ -19,18 +19,13 @@ public class Program {
 	public static int NUM_GATES { get; private set; }
 	public static int NUM_PLANES { get; private set; }
 	public static double NUM_TIMES { get; private set; }
-	public static DateTime StartTime { get; private set; } = new DateTime(2000, 1, 1);
-	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(StartTime, 1);
+	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
 	public static Airport Airport { get; set; }
 
 	public static void Main() {
-		// Console.WriteLine(new Taxiway("test taxiway"));
-		// Console.WriteLine(new Runway("test runway", Direction.NORTH));
-		// Console.WriteLine(new Plane(Algorithm.DLimited, "test", StartTime.AddMinutes(5)));
 		List<Plane> planes = new() {
-			new Plane(Algorithm.DLimited, "P1", StartTime.AddMinutes(5)),
-			new Plane(Algorithm.DLimited, "P2", StartTime.AddMinutes(10)),
-
+			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
+			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(10)),
 		};
 
 		List<Gate> gates = new() {

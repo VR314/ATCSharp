@@ -38,7 +38,7 @@ public class Plane : ActiveObject<Simulation> {
 	public readonly string ID;
 	public readonly int GateIndex;
 	public readonly Algorithm algorithm;
-	private readonly DateTime spawnTime;
+	private readonly TimeSpan spawnTime;
 	private readonly Simulation simulation = Program.Env;
 	private readonly Process process;
 	private Part currentPart;
@@ -49,7 +49,7 @@ public class Plane : ActiveObject<Simulation> {
 	private Queue<Part> partsQueue = new();
 	private Part target => partsQueue.ToArray()[partsQueue.Count - 1];
 
-	public Plane(Algorithm algorithm, string ID, DateTime spawnTime) : base(Program.Env) {
+	public Plane(Algorithm algorithm, string ID, TimeSpan spawnTime) : base(Program.Env) {
 		this.ID = ID;
 		this.spawnTime = spawnTime;
 		this.algorithm = algorithm;
@@ -88,7 +88,7 @@ public class Plane : ActiveObject<Simulation> {
 			Program.Airport.CompletedPlanes.Add(this);
 			Completed = true;
 			currentPart.Planes.Remove(this);
-			simulation.Log($"{simulation.NowD / 60}\t{ID} is completed!");
+			simulation.Log($"{simulation.NowD}\t{ID} is completed!");
 			return false;
 		} else {
 			return false;
@@ -97,20 +97,20 @@ public class Plane : ActiveObject<Simulation> {
 
 	private IEnumerable<Event> Moving() {
 		// only runs 24 hours max
-		if (simulation.NowD / 60 > 60 * spawnTime.Hour + spawnTime.Minute) {
-			yield return simulation.Timeout(TimeSpan.FromMinutes((simulation.NowD / 60) - (60 * spawnTime.Hour + spawnTime.Minute)));
+		if (simulation.NowD < 60 * spawnTime.Hours + spawnTime.Minutes) {
+			yield return simulation.Timeout(TimeSpan.FromMinutes((60 * spawnTime.Hours + spawnTime.Minutes) - (simulation.NowD)));
 		}
-		simulation.Log($"{simulation.NowD / 60}\t{ID} starting at {currentPart.Name}");
+		simulation.Log($"{simulation.NowD}\t{ID} starting at {currentPart.Name}");
 		while (true) {
 			if (CheckMovement()) {
 				ChangePart();
-				simulation.Log($"{simulation.NowD / 60}\t{ID} --> {currentPart.Name}");
-				yield return simulation.Timeout(TimeSpan.FromMinutes(5));
+				simulation.Log($"{simulation.NowD}\t{ID} --> {currentPart.Name}");
+				yield return simulation.Timeout(TimeSpan.FromMinutes(3));
 			} else {
 				if (Completed) {
 					yield return simulation.Timeout(TimeSpan.FromMinutes(1000000000));
 				} else {
-					// simulation.Log($"{simulation.NowD / 60}\t{ID} == {currentPart.Name}");
+					// simulation.Log($"{simulation.NowD}\t{ID} == {currentPart.Name}");
 					yield return simulation.Timeout(TimeSpan.FromMinutes(1));
 				}
 			}
