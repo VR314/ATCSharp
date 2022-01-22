@@ -57,21 +57,31 @@ public class Plane : ActiveObject<Simulation> {
 		this.ID = ID;
 		this.spawnTime = spawnTime;
 		this.Algorithm = algorithm;
-		simulation.Process(Moving());
 	}
 
 	// run after Airport is defined
 	public void Instantiate() {
 		currentPart = Program.Airport.Runways[0];
+		simulation.Process(Moving());
 		MakePartsQueue();
 	}
 
 	private void Log(string message) {
+		int time = (int)(simulation.NowD);
 		if (Program.LogByTime) {
-			if (Program.LogsByTime[(int)(simulation.NowD)] == null) {
-				Program.LogsByTime[(int)(simulation.NowD)] = $"{simulation.NowD}\n";
+			if (Program.Logs[time] == null) {
+				Program.Logs[time] = $"{simulation.NowD}\n";
 			}
-			Program.LogsByTime[(int)(simulation.NowD)] += $"\n{message}";
+			Program.Logs[time] += $"\n{message}";
+
+			string s = "";
+			foreach (Part part in Program.Airport.Parts) {
+				s += $"\n{part.Name}\t";
+				foreach (Plane p in part.Planes) {
+					s += $"{p.ID}";
+				}
+			}
+			Program.AirportStates[time] = s;
 		} else {
 			simulation.Log($"{simulation.NowD}\t{message}");
 		}
