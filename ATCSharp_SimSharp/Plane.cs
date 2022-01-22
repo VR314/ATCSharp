@@ -66,6 +66,17 @@ public class Plane : ActiveObject<Simulation> {
 		MakePartsQueue();
 	}
 
+	private void Log(string message) {
+		if (Program.LogByTime) {
+			if (Program.LogsByTime[(int)(simulation.NowD)] == null) {
+				Program.LogsByTime[(int)(simulation.NowD)] = $"{simulation.NowD}\n";
+			}
+			Program.LogsByTime[(int)(simulation.NowD)] += $"\n{message}";
+		} else {
+			simulation.Log($"{simulation.NowD}\t{message}");
+		}
+	}
+
 	// for now, search for all parts in the positive direction
 	private void MakePartsQueue() {
 		switch (State) {
@@ -115,7 +126,7 @@ public class Plane : ActiveObject<Simulation> {
 			Program.Airport.CompletedPlanes.Add(this);
 			Completed = true;
 			currentPart.Planes.Remove(this);
-			simulation.Log($"{simulation.NowD}\t{ID} is completed!");
+			Log($"{ID} is completed!");
 			// TODO: increment state, re-make parts list based on state
 			return false;
 		} else {
@@ -123,6 +134,7 @@ public class Plane : ActiveObject<Simulation> {
 		}
 	}
 
+	// add variable distribution of movement times, or does that inherently interfere with time-blocking?
 	private IEnumerable<Event> Moving() {
 		// only runs 24 hours max
 		// wait until spawnTime
@@ -133,20 +145,20 @@ public class Plane : ActiveObject<Simulation> {
 		// set to landing state
 		// TODO: implement check on landing runway
 		//	- possibly make a "START" part that it waits on, and make the runway the first element of the queue
-		simulation.Log($"{simulation.NowD}\t{ID} starting at {currentPart.Name}");
+		Log($"{ID} starting at {currentPart.Name}");
 		State = State.LANDING;
 		Data.LandingTime = simulation.NowD;
 
 		while (true) {
 			if (CheckMovement()) {
 				ChangePart();
-				simulation.Log($"{simulation.NowD}\t{ID} --> {currentPart.Name}");
+				Log($"{ID} --> {currentPart.Name}");
 				yield return simulation.Timeout(TimeSpan.FromMinutes(3));
 			} else {
 				if (Completed) {
 					yield return simulation.Timeout(TimeSpan.FromMinutes(Program.SimDuration.TotalMinutes - simulation.NowD + 1));
 				} else {
-					// simulation.Log($"{simulation.NowD}\t{ID} == {currentPart.Name}");
+					// .Log($"{ID} == {currentPart.Name}");
 					Data.TotalIdleTime++;
 					yield return simulation.Timeout(TimeSpan.FromMinutes(1));
 				}

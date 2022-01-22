@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 // INFO: USE OPTIMIZED RELEASE BINARY FOR GETTING DATA
@@ -15,12 +16,14 @@ public struct Link {
 }
 
 public class Program {
+	public static bool LogByTime { get; } = false && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(23);
 	public static int NUM_GATES { get; private set; }
 	public static int NUM_PLANES { get; private set; }
 	public static double NUM_TIMES { get; private set; }
 	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
 	public static Airport Airport { get; set; }
+	public static string[] LogsByTime { get; set; } = new string[(int)SimDuration.TotalMinutes];
 
 	public static void Main() {
 		List<Plane> planes = new() {
@@ -55,10 +58,38 @@ public class Program {
 			new Link { a = parts[4], b = parts[3] },
 		};
 
+		// TODO: after validating algorithms, make this a large, quad-runway airport with many gates and see how behavior changes
 		Airport = new Airport(planes, parts, gates, links);
 		Airport.Instantiate();
 
 		Env.Run(SimDuration);
+		if (LogByTime) {
+			List<string> logs = LogsByTime.Where(x => x != null).ToList();
+			int i = 0;
+			while (i < logs.Count) {
+				Console.SetWindowPosition(0, i * Console.WindowHeight);
+				Console.SetCursorPosition(0, i * Console.WindowHeight);
+				Console.WriteLine(logs[i]);
+				var ch = Console.ReadKey(false).Key;
+				switch (ch) {
+					case ConsoleKey.Enter: // exit
+						i = logs.Count;
+						return;
+					case ConsoleKey.UpArrow:
+						i = Math.Min(i + 1, logs.Count - 1);
+						break;
+					case ConsoleKey.RightArrow:
+						i = Math.Min(i + 1, logs.Count - 1);
+						break;
+					case ConsoleKey.LeftArrow:
+						i = Math.Max(i - 1, 0);
+						break;
+					case ConsoleKey.DownArrow:
+						i = Math.Max(i - 1, 0);
+						break;
+				}
+			}
+		}
 	}
 
 	public static double Simulate(int seed) {
