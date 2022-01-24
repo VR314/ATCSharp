@@ -1,11 +1,7 @@
-﻿using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 // since this is immutable, remove and re-create when editing
 public struct TimeBlock {
@@ -16,7 +12,7 @@ public struct TimeBlock {
 
 	public int length {
 		get {
-			return (int)(EndTime - StartTime);
+			return (EndTime - StartTime);
 		}
 	}
 }
@@ -30,25 +26,28 @@ public class Airport {
 	public List<Runway> Runways = new();
 	// TODO: keep this sorted in time order
 	public List<TimeBlock> TimeBlocks { get; set; } = new();
+	private List<Link> links;
 
 	// TODO: make this a proper constructor
 	public Airport(List<Plane> planes, List<Part> parts, List<Gate> gates, List<Link> links) {
 		this.Planes = planes;
 		this.Parts = parts;
 		this.Gates = gates;
-		// since a --> b is the positive direction
-		foreach (Link l in links) {
-			// a is negative to b
-			l.b.Connected[(int)Direction.NEGATIVE].Add(l.a);
-			// b is positive to a
-			l.a.Connected[(int)Direction.POSITIVE].Add(l.b);
-		}
+		this.links = links;
 
 		Runways.AddRange(Parts.FindAll((item) => item.GetType() == typeof(Runway)).Select((item) => (Runway)item).ToList());
 		Taxiways.AddRange(Parts.FindAll((item) => item.GetType() == typeof(Taxiway)).Select((item) => (Taxiway)item).ToList());
 	}
 
 	public void Instantiate() {
+		// since a --> b is the positive direction
+		foreach (Link l in links) {
+			// a is negative to b
+			l.pB.Connected[(int)Direction.NEGATIVE].Add(l.pA);
+			// b is positive to a
+			l.pA.Connected[(int)Direction.POSITIVE].Add(l.pB);
+		}
+
 		foreach (Plane p in Planes) {
 			p.Instantiate();
 		}
@@ -58,8 +57,10 @@ public class Airport {
 				t.Gate.Taxiway = t;
 			}
 		}
+
 	}
 
+	// to serialize only some fields, replace this with new { } and fill in only needed parameters 
 	public override string ToString() => JsonConvert.SerializeObject(this, Formatting.Indented,
 		new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
 }

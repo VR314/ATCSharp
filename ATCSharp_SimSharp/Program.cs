@@ -8,8 +8,21 @@ using System.Runtime.InteropServices;
 // INFO: USE OPTIMIZED RELEASE BINARY FOR GETTING DATA
 
 public struct Link {
-	public Part a;
-	public Part b;
+	public Part pA {
+		get {
+			string search = a;
+			return Program.Airport.Parts.Find((part) => part.Name == search);
+		}
+	}
+	public Part pB {
+		get {
+			string search = b;
+			return Program.Airport.Parts.Find((part) => part.Name == search);
+		}
+	}
+
+	public string a;
+	public string b;
 }
 
 public class Program {
@@ -24,7 +37,7 @@ public class Program {
 	public static void Main() {
 		List<Plane> planes = new() {
 			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
-			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(10)),
+			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
 		};
 
 		List<Gate> gates = new() {
@@ -45,13 +58,20 @@ public class Program {
 
 		// a --> b is the "positive" direction, so b.connected[1] += a; && a.connected[0] += b;
 		List<Link> links = new() {
-			new Link { a = parts[0], b = parts[1] },
-			new Link { a = parts[1], b = parts[2] },
-			// dividing airport in half: left runway can only go to left half gates (<= n/2)
-			new Link { a = parts[7], b = parts[5] },
-			new Link { a = parts[5], b = parts[4] },
-			new Link { a = parts[6], b = parts[4] },
-			new Link { a = parts[4], b = parts[3] },
+			// new Link { pA = parts[0], pB = parts[1] },
+			// new Link { pA = parts[1], pB = parts[2] },
+			// 
+			// new Link { pA = parts[7], pB = parts[5] },
+			// new Link { pA = parts[5], pB = parts[4] },
+			// new Link { pA = parts[6], pB = parts[4] },
+			// new Link { pA = parts[4], pB = parts[3] },
+			new Link { a = "R0FL", b = "T1" },
+			new Link { a = "T1", b = "T2+G1" },
+			//--dividing airport in half: left runway can only go to left half gates (<= n/2)--
+			new Link { a = "R7TR", b = "T5" },
+			new Link { a = "T5", b = "T4" },
+			new Link { a = "R6BR", b = "T4" },
+			new Link { a = "T4", b = "T3+G2" }
 		};
 
 		// TODO: after validating algorithms, make this a large, quad-runway airport with many gates and see how behavior changes

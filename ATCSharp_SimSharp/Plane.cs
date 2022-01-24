@@ -5,6 +5,7 @@ using SimSharp;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /* Algorithms:
  * - Decentralized Limited: like FCFS with bigger scope
@@ -61,6 +62,7 @@ public class Plane : ActiveObject<Simulation> {
 
 	// run after Airport is defined
 	public void Instantiate() {
+		// TODO: determine gate randomly, choose runway that corresponds to gate? OR determine runway randomly, search all positive paths and pick an open gate (that isn't time-blocked!)
 		currentPart = Program.Airport.Runways[0];
 		simulation.Process(Moving());
 		MakePartsQueue();
@@ -101,6 +103,7 @@ public class Plane : ActiveObject<Simulation> {
 				break;
 			case State.GATE:
 				// TODO: pick a target runway, go positive from there, and reverse the queue
+				// partsQueue = (Queue<Part>)partsQueue.Reverse();
 				Console.WriteLine("AT THE GATE -- UNIMPLEMENTED PARTS QUEUE");
 				break;
 			default:
@@ -137,6 +140,7 @@ public class Plane : ActiveObject<Simulation> {
 			Completed = true;
 			currentPart.Planes.Remove(this);
 			Log($"{ID} is completed!");
+			Log($"{ID} has total idle time: {Data.TotalIdleTime}");
 			// TODO: increment state, re-make parts list based on state
 			return false;
 		} else {
@@ -152,9 +156,13 @@ public class Plane : ActiveObject<Simulation> {
 			yield return simulation.Timeout(TimeSpan.FromMinutes((60 * spawnTime.Hours + spawnTime.Minutes) - (simulation.NowD)));
 		}
 
+		// wait until runway is open
+		while (currentPart.Occupied) {
+			Data.TotalIdleTime++;
+			yield return simulation.Timeout(TimeSpan.FromMinutes(1));
+		}
+
 		// set to landing state
-		// TODO: implement check on landing runway
-		//	- possibly make a "START" part that it waits on, and make the runway the first element of the queue
 		Log($"{ID} starting at {currentPart.Name}");
 		State = State.LANDING;
 		Data.LandingTime = simulation.NowD;
@@ -176,6 +184,7 @@ public class Plane : ActiveObject<Simulation> {
 		}
 	}
 
+	// to serialize only some fields, replace this with new { } and fill in only needed parameters 
 	public override string ToString() => JsonConvert.SerializeObject(this, Formatting.Indented,
 		new JsonConverter[] { new StringEnumConverter() });
 }
