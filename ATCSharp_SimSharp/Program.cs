@@ -38,11 +38,14 @@ public class Program {
 		List<Plane> planes = new() {
 			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
 			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
+			new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
 		};
 
 		List<Gate> gates = new() {
 			new Gate("G1"),
-			new Gate("G2")
+			new Gate("G2"),
+			new Gate("G3"),
+			new Gate("G4"),
 		};
 
 		List<Part> parts = new() {
@@ -50,28 +53,27 @@ public class Program {
 			new Taxiway("T1"),
 			new Taxiway("T2+G1", gates[0]),
 			new Taxiway("T3+G2", gates[1]),
-			new Taxiway("T4"),
-			new Taxiway("T5"),
-			new Runway("R6BR"),
-			new Runway("R7TR"),
+			// -- dividing --
+			new Taxiway("T4+G3", gates[2]),
+			new Taxiway("T5+G4", gates[3]),
+			new Taxiway("T6"),
+			new Taxiway("T7"),
+			new Runway("R1BR"),
+			new Runway("R2TR"),
 		};
 
 		// a --> b is the "positive" direction, so b.connected[1] += a; && a.connected[0] += b;
 		List<Link> links = new() {
-			// new Link { pA = parts[0], pB = parts[1] },
-			// new Link { pA = parts[1], pB = parts[2] },
-			// 
-			// new Link { pA = parts[7], pB = parts[5] },
-			// new Link { pA = parts[5], pB = parts[4] },
-			// new Link { pA = parts[6], pB = parts[4] },
-			// new Link { pA = parts[4], pB = parts[3] },
 			new Link { a = "R0FL", b = "T1" },
 			new Link { a = "T1", b = "T2+G1" },
+			new Link { a = "T2+G1", b = "T3+G2" },
 			//--dividing airport in half: left runway can only go to left half gates (<= n/2)--
-			new Link { a = "R7TR", b = "T5" },
-			new Link { a = "T5", b = "T4" },
-			new Link { a = "R6BR", b = "T4" },
-			new Link { a = "T4", b = "T3+G2" }
+			new Link { a = "R1BR", b = "T6" },
+
+			new Link { a = "R2TR", b = "T7" },
+			new Link { a = "T7", b = "T6" },
+			new Link { a = "T6", b = "T5+G4" },
+			new Link { a = "T5+G4", b = "T4+G3" },
 		};
 
 		// TODO: after validating algorithms, make this a large, quad-runway airport with many gates and see how behavior changes

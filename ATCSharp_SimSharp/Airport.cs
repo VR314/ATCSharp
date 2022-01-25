@@ -48,16 +48,18 @@ public class Airport {
 			l.pA.Connected[(int)Direction.POSITIVE].Add(l.pB);
 		}
 
+		// make sure all airport setup is done before instantiating planes
+		foreach (Taxiway t in Taxiways) {
+			if (t.Gate != null) {
+				t.Gate.Instantiate(t);
+			}
+		}
+
 		foreach (Plane p in Planes) {
 			p.Instantiate();
 		}
 
-		foreach (Taxiway t in Taxiways) {
-			if (t.Gate != null) {
-				t.Gate.Taxiway = t;
-			}
-		}
-
+		System.Console.WriteLine("done");
 	}
 
 	// to serialize only some fields, replace this with new { } and fill in only needed parameters 

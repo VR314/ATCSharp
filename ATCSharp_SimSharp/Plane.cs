@@ -30,6 +30,11 @@ public enum State {
 	TAKEOFF
 }
 
+public enum Half {
+	LEFT,
+	RIGHT
+}
+
 // class instead of struct b/c structs are immutable :(
 public class PlaneData {
 	public double LandingTime { get; set; } = -1;
@@ -51,6 +56,7 @@ public class Plane : ActiveObject<Simulation> {
 	public Direction CurrDirection { get; private set; } = Direction.POSITIVE;
 	public bool Completed { get; private set; } = false;
 	private Queue<Part> partsQueue = new();
+	private Half half;
 	private Part target => partsQueue.ToArray()[partsQueue.Count - 1];
 	private List<TimeBlock> timeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.Plane.Equals(this));
 
@@ -60,12 +66,28 @@ public class Plane : ActiveObject<Simulation> {
 		this.Algorithm = algorithm;
 	}
 
+	public Plane(Algorithm algorithm, string ID, TimeSpan spawnTime, Runway runway) : base(Program.Env) {
+		this.ID = ID;
+		this.spawnTime = spawnTime;
+		this.Algorithm = algorithm;
+		this.currentPart = runway;
+	}
+
 	// run after Airport is defined
 	public void Instantiate() {
 		// TODO: determine gate randomly, choose runway that corresponds to gate? OR determine runway randomly, search all positive paths and pick an open gate (that isn't time-blocked!)
-		currentPart = Program.Airport.Runways[0];
+		if (currentPart == null) {
+			int rw = new Random().Next(Program.Airport.Runways.Count);
+			currentPart = Program.Airport.Runways[rw];
+		}
+
+		if (Program.Airport.Runways.IndexOf((Runway)currentPart) <= Program.Airport.Runways.Count / 2) {
+			half = Half.LEFT;
+		} else {
+			half = Half.RIGHT;
+		}
+
 		simulation.Process(Moving());
-		MakePartsQueue();
 	}
 
 	private void Log(string message) {
@@ -89,26 +111,41 @@ public class Plane : ActiveObject<Simulation> {
 		}
 	}
 
-	// for now, search for all parts in the positive direction
-	private void MakePartsQueue() {
+	private bool MakePartsQueue() {
 		switch (State) {
 			case State.WAITING:
+				List<Gate> availableGates = Program.Airport.Gates;
+				int removeIndex = 0;
+				if (half == Half.LEFT) {
+					removeIndex = Program.Airport.Gates.Count / 2;
+				}
+				availableGates.RemoveRange(removeIndex, Program.Airport.Gates.Count / 2);
+				availableGates = availableGates.FindAll((g) => !g.Targeted);
+				if (availableGates.Count == 0) {
+					return false;
+				}
+				int index = new Random().Next(availableGates.Count);
+				Taxiway target = availableGates[index].Taxiway;
 				// TODO: stop on a target Gate
 				Part p = currentPart;
 				partsQueue.Enqueue(p);
 				do {
 					p = p.Connected[(int)Direction.POSITIVE][0];
 					partsQueue.Enqueue(p);
-				} while (p.Connected[(int)Direction.POSITIVE].Count > 0);
-				break;
+				} while (p.Connected[(int)Direction.POSITIVE].Count > 0 && partsQueue.Equals(target));
+				partsQueue.Enqueue(target);
+				partsQueue.Enqueue(target.Gate);
+				target.Gate.Targeted = true;
+				return true;
 			case State.GATE:
 				// TODO: pick a target runway, go positive from there, and reverse the queue
 				// partsQueue = (Queue<Part>)partsQueue.Reverse();
-				Console.WriteLine("AT THE GATE -- UNIMPLEMENTED PARTS QUEUE");
+				throw new Exception("AT THE GATE -- UNIMPLEMENTED PARTS QUEUE");
 				break;
 			default:
 				throw new Exception("MakePartsQueue() called at unexpected time");
 		}
+		return false;
 	}
 
 	private void ChangePart() {
@@ -152,6 +189,10 @@ public class Plane : ActiveObject<Simulation> {
 	private IEnumerable<Event> Moving() {
 		// only runs 24 hours max
 		// wait until spawnTime
+		while (!MakePartsQueue()) {
+			yield return simulation.Timeout(TimeSpan.FromMinutes(1));
+		}
+
 		if (simulation.NowD < 60 * spawnTime.Hours + spawnTime.Minutes) {
 			yield return simulation.Timeout(TimeSpan.FromMinutes((60 * spawnTime.Hours + spawnTime.Minutes) - (simulation.NowD)));
 		}
