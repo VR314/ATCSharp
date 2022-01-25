@@ -58,8 +58,6 @@ public class Airport {
 		foreach (Plane p in Planes) {
 			p.Instantiate();
 		}
-
-		System.Console.WriteLine("done");
 	}
 
 	// to serialize only some fields, replace this with new { } and fill in only needed parameters 

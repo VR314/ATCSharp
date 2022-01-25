@@ -30,6 +30,7 @@ public class Program {
 	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
 	public static Airport Airport { get; set; }
 
+	// make sure this is set to false when debugging in real-time
 	public static bool LogByTime { get; } = true && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 	public static string[] Logs { get; set; } = new string[(int)SimDuration.TotalMinutes];
 	public static string[] AirportStates { get; set; } = new string[(int)SimDuration.TotalMinutes];
@@ -38,7 +39,7 @@ public class Program {
 		List<Plane> planes = new() {
 			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
 			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
-			new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
+			//new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
 		};
 
 		List<Gate> gates = new() {
