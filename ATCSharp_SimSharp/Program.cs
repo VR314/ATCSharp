@@ -38,8 +38,8 @@ public class Program {
 	public static void Main() {
 		List<Plane> planes = new() {
 			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
-			new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
-			//new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
+			// new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
+			// new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
 		};
 
 		List<Gate> gates = new() {
@@ -50,7 +50,9 @@ public class Program {
 		};
 
 		List<Part> parts = new() {
-			new Runway("R0FL"),
+			new Runway("R_BL"),
+			new Runway("R_TL"),
+			new Taxiway("T0"),
 			new Taxiway("T1"),
 			new Taxiway("T2+G1", gates[0]),
 			new Taxiway("T3+G2", gates[1]),
@@ -59,19 +61,21 @@ public class Program {
 			new Taxiway("T5+G4", gates[3]),
 			new Taxiway("T6"),
 			new Taxiway("T7"),
-			new Runway("R1BR"),
-			new Runway("R2TR"),
+			new Runway("R_BR"),
+			new Runway("R_TR"),
 		};
 
 		// a --> b is the "positive" direction, so b.connected[1] += a; && a.connected[0] += b;
 		List<Link> links = new() {
-			new Link { a = "R0FL", b = "T1" },
+			new Link { a = "R_BL", b = "T1" },
+			new Link { a = "R_TL", b = "T0"},
+			new Link { a ="T0", b = "T1"},
 			new Link { a = "T1", b = "T2+G1" },
 			new Link { a = "T2+G1", b = "T3+G2" },
 			//--dividing airport in half: left runway can only go to left half gates (<= n/2)--
-			new Link { a = "R1BR", b = "T6" },
+			new Link { a = "R_BR", b = "T6" },
 
-			new Link { a = "R2TR", b = "T7" },
+			new Link { a = "R_TR", b = "T7" },
 			new Link { a = "T7", b = "T6" },
 			new Link { a = "T6", b = "T5+G4" },
 			new Link { a = "T5+G4", b = "T4+G3" },

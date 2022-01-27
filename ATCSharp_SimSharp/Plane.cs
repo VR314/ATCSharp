@@ -240,6 +240,11 @@ public class Plane : ActiveObject<Simulation> {
 		while (!MakePartsQueue()) {
 			yield return simulation.Timeout(TimeSpan.FromMinutes(1));
 		}
+
+		Log($"{ID} is waiting at the Gate: {currentPart.Name}");
+		yield return simulation.Timeout(TimeSpan.FromMinutes(10));
+		
+		Log($"{ID} is leaving the Gate: {currentPart.Name}");
 		State = State.TAXI_OUT;
 
 		while (State == State.TAXI_OUT) {
