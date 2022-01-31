@@ -38,22 +38,22 @@ public class SimSummary {
 }
 
 public class Program {
-	public static Algorithm Alg = Algorithm.DLimited;
+	public static Algorithm Alg = Algorithm.DGlobal;
 	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(23);
 	public static Simulation Env { get; private set; }
 	public static Airport Airport { get; set; }
 
 	// make sure this is set to false when debugging in real-time
-	public static bool LogByTime { get; } = true && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+	public static bool LogByTime { get; } = false && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 	public static string[] Logs { get; set; }
 	public static string[] AirportStates { get; set; }
 	public static List<SimSummary> SimSummaries { get; set; } = new();
 
 	public static void Main() {
-		SimulateForDebug();
+		SimulateForData();
 	}
 
-	public static void SimulateForDebug() {
+	public static void Debug() {
 		Env = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
 		Logs = new string[(int)SimDuration.TotalMinutes];
 		AirportStates = new string[(int)SimDuration.TotalMinutes];
@@ -148,10 +148,10 @@ public class Program {
 		}
 	}
 
-	public void SimulateForData() {
+	public static void SimulateForData() {
 		Alg = Algorithm.DLimited;
 		for (int i = 0; i < 1000;) {
-			SimSummary? output = Simulate(4);
+			SimSummary? output = Simulate(5);
 			if (output != null) {
 				i++;
 				Console.WriteLine(i);
@@ -173,7 +173,7 @@ public class Program {
 		SimSummaries = new();
 		Alg = Algorithm.DGlobal;
 		for (int i = 0; i < 1000;) {
-			SimSummary? output = Simulate(4);
+			SimSummary? output = Simulate(5);
 			if (output != null) {
 				i++;
 				Console.WriteLine(i);
@@ -242,56 +242,11 @@ public class Program {
 
 		List<Plane> planes = GeneratePlanes(numPlanes);
 
-		/*
-		List<Plane> planes = new() {
-			new Plane(Alg, "P1", TimeSpan.FromMinutes(5)),
-			new Plane(Alg, "P2", TimeSpan.FromMinutes(6)),
-			new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
-		};
-		*/
-
 		Airport = new Airport(planes, parts, gates, links);
 		Airport.Instantiate();
-		// Console.WriteLine("Running...");
 		Env.Run(SimDuration);
-		if (LogByTime) {
-			Console.Clear();
-			List<string> logs = Logs.Where(x => x != null).ToList();
-			List<string> states = AirportStates.Where(x => x != null).ToList();
-			int i = 0;
-			int hMax = 0;
-			for (int x = 0; x < logs.Count; x++) {
-				hMax = Math.Max((logs[i].Count(c => c == '\n') + states[i].Count(c => c == '\n') / 5) * 5, hMax);
-			}
 
-			while (i < logs.Count) {
-				Console.SetWindowSize(Console.WindowWidth, hMax);
-				Console.SetWindowPosition(0, i * Console.WindowHeight);
-				Console.SetCursorPosition(0, i * Console.WindowHeight);
-				Console.WriteLine(logs[i]);
-				Console.WriteLine("--------------------------\n");
-				Console.Write(states[i]);
-				var ch = Console.ReadKey(false).Key;
-				switch (ch) {
-					case ConsoleKey.Enter: // exit
-						i = logs.Count;
-						Console.WriteLine();
-						break;
-					case ConsoleKey.UpArrow:
-						i = Math.Min(i + 1, logs.Count - 1);
-						break;
-					case ConsoleKey.RightArrow:
-						i = Math.Min(i + 1, logs.Count - 1);
-						break;
-					case ConsoleKey.LeftArrow:
-						i = Math.Max(i - 1, 0);
-						break;
-					case ConsoleKey.DownArrow:
-						i = Math.Max(i - 1, 0);
-						break;
-				}
-			}
-		}
+		// TODO: find alternative: currently ignoring stalemates...
 		if (Airport.CompletedPlanes.Count != planes.Count) {
 			return null;
 		}

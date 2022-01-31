@@ -2,13 +2,12 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
 
 using SimSharp;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 /* Algorithms:
- * - Decentralized Limited: like FCFS with bigger scope
+ * - Decentralized Limited: don't move if anything in partsQueue is occupied!
  * - Decentralized Global: Using Time-Blocking Queues (requires multiple paths between points? -- or just forces more efficient waiting?)
  */
 
@@ -76,12 +75,10 @@ public class Plane : ActiveObject<Simulation> {
 
 	// run after Airport is defined
 	public void Instantiate() {
-		// TODO: determine gate randomly, choose runway that corresponds to gate? OR determine runway randomly, search all positive paths and pick an open gate (that isn't time-blocked!)
 		if (currentPart == null) {
 			int rw = new Random().Next(Program.Airport.Runways.Count);
 			currentPart = Program.Airport.Runways[rw];
 		}
-
 
 		if (Program.Airport.Runways.IndexOf((Runway)currentPart) < Math.Floor(Program.Airport.Runways.Count / 2.0)) {
 			half = Half.LEFT;
@@ -207,7 +204,7 @@ public class Plane : ActiveObject<Simulation> {
 		// checks immediate next part as a baseline
 		if (!Completed && partsQueue.Count > 0 && !partsQueue.Peek().Occupied) {
 			switch (Algorithm) {
-				// TODO: check n forward parts
+				// check all forward parts
 				case Algorithm.DLimited:
 					foreach (Part p in partsQueue) {
 						if (p.Occupied) {
@@ -254,6 +251,7 @@ public class Plane : ActiveObject<Simulation> {
 	// add variable distribution of movement times, or does that inherently interfere with time-blocking?
 	private IEnumerable<Event> Moving() {
 		// only runs 24 hours max
+
 		// wait until spawnTime
 		while (!MakePartsQueue()) {
 			yield return simulation.Timeout(TimeSpan.FromMinutes(1));
