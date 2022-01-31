@@ -38,7 +38,7 @@ public class SimSummary {
 }
 
 public class Program {
-	public static Algorithm Alg = Algorithm.DGlobal;
+	public static Algorithm Alg;
 	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(23);
 	public static Simulation Env { get; private set; }
 	public static Airport Airport { get; set; }
@@ -50,13 +50,14 @@ public class Program {
 	public static List<SimSummary> SimSummaries { get; set; } = new();
 
 	public static void Main() {
-		SimulateForData();
+		SimulateForData(100, 15);
 	}
 
 	public static void Debug() {
 		Env = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
 		Logs = new string[(int)SimDuration.TotalMinutes];
 		AirportStates = new string[(int)SimDuration.TotalMinutes];
+		Alg = Algorithm.DLimited;
 
 
 		List<Gate> gates = new() {
@@ -148,10 +149,10 @@ public class Program {
 		}
 	}
 
-	public static void SimulateForData() {
+	public static void SimulateForData(int times, int planes) {
 		Alg = Algorithm.DLimited;
-		for (int i = 0; i < 1000;) {
-			SimSummary? output = Simulate(5);
+		for (int i = 0; i < times;) {
+			SimSummary? output = Simulate(planes);
 			if (output != null) {
 				i++;
 				Console.WriteLine(i);
@@ -172,8 +173,8 @@ public class Program {
 
 		SimSummaries = new();
 		Alg = Algorithm.DGlobal;
-		for (int i = 0; i < 1000;) {
-			SimSummary? output = Simulate(5);
+		for (int i = 0; i < times;) {
+			SimSummary? output = Simulate(planes);
 			if (output != null) {
 				i++;
 				Console.WriteLine(i);
