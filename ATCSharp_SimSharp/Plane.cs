@@ -109,7 +109,7 @@ public class Plane : ActiveObject<Simulation> {
 			}
 			Program.AirportStates[time] = s;
 		} else {
-			simulation.Log($"{simulation.NowD}\t{message}");
+			// simulation.Log($"{simulation.NowD}\t{message}");
 		}
 	}
 
@@ -209,7 +209,11 @@ public class Plane : ActiveObject<Simulation> {
 			switch (Algorithm) {
 				// TODO: check n forward parts
 				case Algorithm.DLimited:
-					// Console.WriteLine();
+					foreach (Part p in partsQueue) {
+						if (p.Occupied) {
+							return false;
+						}
+					}
 					return true;
 				case Algorithm.DGlobal:
 					// check if the next part is marked 
@@ -233,6 +237,7 @@ public class Plane : ActiveObject<Simulation> {
 				State = State.GATE;
 			} else {
 				this.Data.TakeoffTime = (int)simulation.NowD;
+				this.State = State.TAKEOFF;
 				Program.Airport.Planes.Remove(this);
 				Program.Airport.CompletedPlanes.Add(this);
 				Completed = true;
@@ -303,6 +308,8 @@ public class Plane : ActiveObject<Simulation> {
 				yield return simulation.Timeout(TimeSpan.FromMinutes(1));
 			}
 		}
+
+		yield return simulation.Timeout(TimeSpan.FromMinutes(Program.SimDuration.TotalMinutes - simulation.NowD));
 	}
 
 	// to serialize only some fields, replace this with new { } and fill in only needed parameters 
