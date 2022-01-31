@@ -40,7 +40,7 @@ public class PlaneData {
 	public double LandingTime { get; set; } = -1;
 	public double TakeoffTime { get; set; } = -1;
 	public double GateArrivalTime { get; set; } = -1;
-	public double TotalIdleTime { get; set; } = 0;
+	public int TotalIdleTime { get; set; } = 0;
 }
 
 public class Plane : ActiveObject<Simulation> {
@@ -59,7 +59,7 @@ public class Plane : ActiveObject<Simulation> {
 	private Queue<Part> origPartsQueue = new();
 	private Half half;
 	private Part target => partsQueue.ToArray()[partsQueue.Count - 1];
-	private List<TimeBlock> timeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.Plane.Equals(this));
+	private List<TimeBlock> timeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.TBPlane.Equals(this));
 
 	public Plane(Algorithm algorithm, string ID, TimeSpan spawnTime) : base(Program.Env) {
 		this.ID = ID;
@@ -116,7 +116,7 @@ public class Plane : ActiveObject<Simulation> {
 	private bool MakePartsQueue() {
 		switch (State) {
 			case State.WAITING:
-				List<Gate> availableGates = Program.Airport.Gates;
+				List<Gate> availableGates = new(Program.Airport.Gates);
 				int removeIndex = 0;
 				int removeAmount = (Program.Airport.Gates.Count / 2);
 				if (half == Half.LEFT) {
@@ -140,20 +140,55 @@ public class Plane : ActiveObject<Simulation> {
 				partsQueue.Enqueue(target.Gate);
 				target.Gate.Targeted = true;
 				origPartsQueue = new Queue<Part>(partsQueue);
+				if (this.Algorithm == Algorithm.DGlobal) {
+					MakeTimeBlocks();
+				}
+				// Log(this.timeBlocks.ToString());
+				this.Data.GateArrivalTime = simulation.NowD;
 				return true;
 			case State.GATE:
-				// TODO: pick a target runway, go positive from there, and reverse the queue
 				List<Part> reversedPartsList = origPartsQueue.Reverse().ToList();
 				foreach (Part part in reversedPartsList) {
 					partsQueue.Enqueue(part);
 				}
 				partsQueue.Dequeue();
-				// throw new Exception("AT THE GATE -- UNIMPLEMENTED PARTS QUEUE");
+				((Gate)currentPart).Targeted = false;
+				if (this.Algorithm == Algorithm.DGlobal) {
+					MakeTimeBlocks();
+				}
+				// Log(this.timeBlocks.ToString());
 				return true;
 			default:
 				throw new Exception("MakePartsQueue() called at unexpected time");
 		}
 		return false;
+	}
+
+	public bool MakeTimeBlocks() {
+		// ADD ALL TIMEBLOCKS TO AIRPORT
+		Part[] parts = partsQueue.ToArray();
+		int time = (int)simulation.NowD;
+		int increment = 3;
+
+		foreach (Part p in parts) {
+			// wait until time doesn't intersect
+			while (!CheckIfFree(p, time)) {
+				time++;
+			}
+			Program.Airport.TimeBlocks.Add(new TimeBlock { TBPart = p, TBPlane = this, StartTime = time, EndTime = time + increment });
+			Program.Airport.TimeBlocks.OrderBy((TimeBlock t) => t.StartTime);
+			time += increment;
+		}
+		return true;
+	}
+
+	private bool CheckIfFree(Part p, int time) {
+		foreach (TimeBlock tb in p.TimeBlocks) {
+			if (tb.StartTime <= time && tb.EndTime >= time) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private void ChangePart() {
@@ -164,19 +199,30 @@ public class Plane : ActiveObject<Simulation> {
 		currentPart = nextPart;
 		if (Algorithm == Algorithm.DGlobal) {
 			// update TimeBlocks
+			nextPart.TimeBlocks.Remove(this.timeBlocks.Find((tb) => tb.TBPlane == this));
 		}
 	}
 
 	private bool CheckMovement() {
+		// checks immediate next part as a baseline
 		if (!Completed && partsQueue.Count > 0 && !partsQueue.Peek().Occupied) {
-			// TODO: algorithm implementation here
 			switch (Algorithm) {
+				// TODO: check n forward parts
 				case Algorithm.DLimited:
 					// Console.WriteLine();
 					return true;
 				case Algorithm.DGlobal:
-					// Console.WriteLine();
-					return true;
+					// check if the next part is marked 
+					if (CheckIfFree(partsQueue.Peek(), (int)simulation.NowD)) {
+						// check if the time block for the next part has passed yet
+						if (partsQueue.Peek().TimeBlocks.Find((tb) => tb.TBPlane == this).StartTime < simulation.NowD) {
+							return true;
+						} else {
+							return false;
+						}
+					} else {
+						return false;
+					}
 			}
 			return true;
 		} else if (Completed) {
@@ -186,6 +232,7 @@ public class Plane : ActiveObject<Simulation> {
 			if (State == State.TAXI_IN) {
 				State = State.GATE;
 			} else {
+				this.Data.TakeoffTime = (int)simulation.NowD;
 				Program.Airport.Planes.Remove(this);
 				Program.Airport.CompletedPlanes.Add(this);
 				Completed = true;
@@ -193,7 +240,6 @@ public class Plane : ActiveObject<Simulation> {
 				Log($"{ID} is completed!");
 				Log($"{ID} has total idle time: {Data.TotalIdleTime}");
 			}
-			// TODO: increment state, re-make parts list based on state
 			return false;
 		} else {
 			return false;
@@ -243,7 +289,7 @@ public class Plane : ActiveObject<Simulation> {
 
 		Log($"{ID} is waiting at the Gate: {currentPart.Name}");
 		yield return simulation.Timeout(TimeSpan.FromMinutes(10));
-		
+
 		Log($"{ID} is leaving the Gate: {currentPart.Name}");
 		State = State.TAXI_OUT;
 
@@ -258,17 +304,6 @@ public class Plane : ActiveObject<Simulation> {
 			}
 		}
 	}
-
-	/*
-	 * 
-				if (Completed) {
-					yield return simulation.Timeout(TimeSpan.FromMinutes(Program.SimDuration.TotalMinutes - simulation.NowD + 1));
-				} else {
-					// .Log($"{ID} == {currentPart.Name}");
-					Data.TotalIdleTime++;
-					yield return simulation.Timeout(TimeSpan.FromMinutes(1));
-				}
-	*/
 
 	// to serialize only some fields, replace this with new { } and fill in only needed parameters 
 	public override string ToString() => JsonConvert.SerializeObject(this, Formatting.Indented,

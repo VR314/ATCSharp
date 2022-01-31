@@ -16,10 +16,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="test.csv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="test.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="27.2.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="SimSharp" Version="3.4.0" />
   </ItemGroup>

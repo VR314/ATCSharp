@@ -26,7 +26,7 @@ public abstract class Part {
 	public List<Part>[] Connected { get; } = new List<Part>[2] { new List<Part>(), new List<Part>() };
 	public List<Plane> Planes { get; set; } = new();
 	public int Capacity { get; init; }
-	private List<TimeBlock> timeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.Part.Equals(this));
+	public List<TimeBlock> TimeBlocks => Program.Airport.TimeBlocks.FindAll((tb) => tb.TBPart.Equals(this));
 	public bool Occupied {
 		get {
 			if (Planes.Count > Capacity) {

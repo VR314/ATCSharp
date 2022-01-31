@@ -5,8 +5,8 @@ using System.Linq;
 
 // since this is immutable, remove and re-create when editing
 public struct TimeBlock {
-	public Part Part { get; set; }
-	public Plane Plane { get; set; }
+	public Part TBPart { get; set; }
+	public Plane TBPlane { get; set; }
 	public int StartTime { get; set; }
 	public int EndTime { get; set; }
 
@@ -30,10 +30,10 @@ public class Airport {
 
 	// TODO: make this a proper constructor
 	public Airport(List<Plane> planes, List<Part> parts, List<Gate> gates, List<Link> links) {
-		this.Planes = planes;
-		this.Parts = parts;
-		this.Gates = gates;
-		this.links = links;
+		this.Planes = new(planes);
+		this.Parts = new(parts);
+		this.Gates = new(gates);
+		this.links = new(links);
 
 		Runways.AddRange(Parts.FindAll((item) => item.GetType() == typeof(Runway)).Select((item) => (Runway)item).ToList());
 		Taxiways.AddRange(Parts.FindAll((item) => item.GetType() == typeof(Taxiway)).Select((item) => (Taxiway)item).ToList());

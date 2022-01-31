@@ -1,9 +1,16 @@
-﻿using SimSharp;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+using SimSharp;
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using CsvHelper;
+using System.Globalization;
 
 // INFO: USE OPTIMIZED RELEASE BINARY FOR GETTING DATA
 
@@ -25,22 +32,52 @@ public struct Link {
 	public string b;
 }
 
+public class SimSummary {
+	public double maxTakeoffTime { get; set; }
+	public double avgIdleTime { get; set; }
+	public double maxIdleTime { get; set; }
+}
+
 public class Program {
+	public static Algorithm Alg = Algorithm.DGlobal;
 	public readonly static TimeSpan SimDuration = TimeSpan.FromHours(23);
-	public static Simulation Env { get; private set; } = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
+	public static Simulation Env { get; private set; }
 	public static Airport Airport { get; set; }
 
 	// make sure this is set to false when debugging in real-time
-	public static bool LogByTime { get; } = true && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-	public static string[] Logs { get; set; } = new string[(int)SimDuration.TotalMinutes];
-	public static string[] AirportStates { get; set; } = new string[(int)SimDuration.TotalMinutes];
+	public static bool LogByTime { get; } = false && RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+	public static string[] Logs { get; set; }
+	public static string[] AirportStates { get; set; }
+	public static List<SimSummary> SimSummaries { get; set; } = new();
 
 	public static void Main() {
-		List<Plane> planes = new() {
-			new Plane(Algorithm.DLimited, "P1", TimeSpan.FromMinutes(5)),
-			// new Plane(Algorithm.DLimited, "P2", TimeSpan.FromMinutes(6)),
-			// new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
-		};
+		Alg = Algorithm.DLimited;
+		for (int i = 0; i < 1;) {
+			SimSummary? output = Simulate(2);
+			if (output != null) {
+				i++;
+				Console.WriteLine(output);
+				SimSummaries.Add(output);
+			}
+		}
+		Console.WriteLine("---");
+		string path = @"test.csv";
+		using (StreamWriter writer = new StreamWriter(new FileStream(path, FileMode.Create, FileAccess.Write))) {
+			string data = String.Join(",", "avgIdle", "maxIdle", "maxTakeoff");
+			writer.WriteLine(data);
+			foreach (SimSummary summary in SimSummaries) {
+				data = String.Join(",", summary.avgIdleTime, summary.maxIdleTime, summary.maxTakeoffTime);
+				writer.WriteLine(data);
+			}
+		}
+
+	}
+
+	public static SimSummary? Simulate(int numPlanes) {
+		Env = new ThreadSafeSimulation(randomSeed: 1, defaultStep: TimeSpan.FromMinutes(1));
+		Logs = new string[(int)SimDuration.TotalMinutes];
+		AirportStates = new string[(int)SimDuration.TotalMinutes];
+
 
 		List<Gate> gates = new() {
 			new Gate("G1"),
@@ -50,8 +87,8 @@ public class Program {
 		};
 
 		List<Part> parts = new() {
-			new Runway("R_BL"),
 			new Runway("R_TL"),
+			new Runway("R_BL"),
 			new Taxiway("T0"),
 			new Taxiway("T1"),
 			new Taxiway("T2+G1", gates[0]),
@@ -61,15 +98,15 @@ public class Program {
 			new Taxiway("T5+G4", gates[3]),
 			new Taxiway("T6"),
 			new Taxiway("T7"),
-			new Runway("R_BR"),
 			new Runway("R_TR"),
+			new Runway("R_BR"),
 		};
 
 		// a --> b is the "positive" direction, so b.connected[1] += a; && a.connected[0] += b;
 		List<Link> links = new() {
 			new Link { a = "R_BL", b = "T1" },
-			new Link { a = "R_TL", b = "T0"},
-			new Link { a ="T0", b = "T1"},
+			new Link { a = "R_TL", b = "T0" },
+			new Link { a = "T0", b = "T1" },
 			new Link { a = "T1", b = "T2+G1" },
 			new Link { a = "T2+G1", b = "T3+G2" },
 			//--dividing airport in half: left runway can only go to left half gates (<= n/2)--
@@ -81,12 +118,22 @@ public class Program {
 			new Link { a = "T5+G4", b = "T4+G3" },
 		};
 
-		// TODO: after validating algorithms, make this a large, quad-runway airport with many gates and see how behavior changes
+		List<Plane> planes = GeneratePlanes(numPlanes);
+
+		/*
+		List<Plane> planes = new() {
+			new Plane(Alg, "P1", TimeSpan.FromMinutes(5)),
+			new Plane(Alg, "P2", TimeSpan.FromMinutes(6)),
+			new Plane(Algorithm.DLimited, "P3", TimeSpan.FromMinutes(7)),
+		};
+		*/
+
 		Airport = new Airport(planes, parts, gates, links);
 		Airport.Instantiate();
-
+		// Console.WriteLine("Running...");
 		Env.Run(SimDuration);
 		if (LogByTime) {
+			Console.Clear();
 			List<string> logs = Logs.Where(x => x != null).ToList();
 			List<string> states = AirportStates.Where(x => x != null).ToList();
 			int i = 0;
@@ -107,7 +154,7 @@ public class Program {
 					case ConsoleKey.Enter: // exit
 						i = logs.Count;
 						Console.WriteLine();
-						return;
+						break;
 					case ConsoleKey.UpArrow:
 						i = Math.Min(i + 1, logs.Count - 1);
 						break;
@@ -123,16 +170,24 @@ public class Program {
 				}
 			}
 		}
+		if (Airport.CompletedPlanes.Count != planes.Count) {
+			return null;
+		}
+
+		// TODO: totalIdleTime always 1000+??? even though in logging it shows correctly>
+		return new SimSummary {
+			maxIdleTime = Airport.CompletedPlanes.Max(p => p.Data.TotalIdleTime),
+			avgIdleTime = Airport.CompletedPlanes.Average(p => p.Data.TotalIdleTime),
+			maxTakeoffTime = Airport.CompletedPlanes.Max(p => p.Data.TakeoffTime),
+		};
 	}
 
-	public static double Simulate(int seed) {
-		Console.WriteLine("\n\n== Airport ==");
-		// generate planes
-		// generate airport
-
-		// Execute!
-		Env.Run(SimDuration);
-
-		return Airport.Planes.Max(p => p.Data.TakeoffTime);
+	public static List<Plane> GeneratePlanes(int numPlanes) {
+		Random rnd = new Random();
+		List<Plane> planes = new List<Plane>();
+		for (int i = 0; i < numPlanes; i++) {
+			planes.Add(new Plane(Alg, $"P{i}", TimeSpan.FromMinutes(rnd.Next(i * 50))));
+		}
+		return planes;
 	}
 }
